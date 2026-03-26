@@ -201,7 +201,7 @@
       <h1 class="title">Thrall &amp; King</h1>
       <div class="subtitle">
         火星帝国逃亡 · 恐怖解谜原型<br>
-        灵感取自《魔女之家》《Ib》《狂父》——点击选择，拼凑歌词残片，决定猫猫是否逃离，或被王重新拥入铁与星的怀抱。
+        灵感取自《魔女之家》《Ib》《狂父》——点击选择，收集三件遗物，决定猫猫是否逃离，或被王重新拥入铁与星的怀抱。
       </div>
 
       <div class="room-card">
@@ -215,8 +215,7 @@
       <div id="log" class="log"></div>
 
       <div class="footer-note">
-        歌词接线说明：页面内置的是主题化占位残片。若要精准绑定《Thrall &amp; King》三首歌词，只需要把脚本里的
-        <strong>TRACKS</strong> 数组替换成你的真实歌词句子即可。
+        三件遗物，三段歌词，三种真相。集齐它们，你才会知道——你究竟是在玩一场游戏，还是在走进一场献祭。
       </div>
     </section>
 
@@ -226,26 +225,26 @@
         <div class="status-grid">
           <div class="status"><div class="label">理智</div><div id="sanity" class="value">4</div></div>
           <div class="status"><div class="label">警戒</div><div id="danger" class="value">0</div></div>
-          <div class="status"><div class="label">歌词碎片</div><div id="fragmentCount" class="value">0/3</div></div>
+          <div class="status"><div class="label">遗物碎片</div><div id="fragmentCount" class="value">0/3</div></div>
           <div class="status"><div class="label">当前章节</div><div id="chapter" class="value">Ⅰ</div></div>
         </div>
       </div>
 
       <div class="section">
-        <h3>歌曲残片</h3>
+        <h3>遗物收集</h3>
         <div id="trackChips" class="chips"></div>
       </div>
 
       <div class="section">
-        <h3>已拾取歌词</h3>
-        <div id="lyricBox" class="lyric-box">还没有拾到残片。火星走廊只剩金属和回音。</div>
+        <h3>已拾取遗物</h3>
+        <div id="lyricBox" class="lyric-box">还没有拾到遗物。火星走廊只剩金属和回音。</div>
       </div>
 
       <div class="section">
         <h3>风格与玩法</h3>
         <div class="small">
           1. 探索五个场景：画廊走廊、观测穹顶、温室裂层、心核反应厅、王座厅。<br>
-          2. 三首歌的残片分别对应三把“钥匙”：<strong>臣服</strong>、<strong>偏航</strong>、<strong>返航</strong>。<br>
+          2. 三件遗物分别对应三把”钥匙”：<strong>引力</strong>、<strong>燃烧</strong>、<strong>献祭</strong>。<br>
           3. 选错太多次，王会更快听见你的脚步。<br>
           4. 结局分为：<strong>逃离火星</strong> / <strong>玻璃温室沉睡</strong> / <strong>王座归还</strong>。
         </div>
@@ -253,31 +252,34 @@
 
       <div class="section ending">
         <h3>当前目标</h3>
-        <div id="objective" class="small">从画廊走廊醒来，找回三段歌词残片。每段歌词都是门，也是锁。</div>
+        <div id="objective" class="small">从画廊走廊醒来，找回三件遗物。每件遗物都是门，也是锁。</div>
       </div>
     </aside>
   </div>
 
   <script>
-    // 用真实歌词替换这里，就能把游戏和专辑三首歌精确绑定。
+    // 三件遗物：星尘麻醉剂、水晶玫瑰、变量芯片——对应三首歌的歌词语录。
     const TRACKS = [
       {
-        id: 'thrall',
-        title: 'Track I · Thrall',
-        keyWord: '臣服',
-        fragment: 'I wore the hush like a chain / and still called it devotion.',
+        id: 'variable',
+        title: '星尘麻醉剂',
+        keyWord: '引力',
+        song: 'The Variable in Ruins',
+        fragment: 'Your vulnerability… is my only gravity.\n你的脆弱……是我唯一的引力。',
       },
       {
-        id: 'variable',
-        title: 'Track II · The Variable in Ruins',
-        keyWord: '偏航',
-        fragment: 'I was the error in the palace code / the variable that refused to kneel.',
+        id: 'thrall',
+        title: '水晶玫瑰',
+        keyWord: '燃烧',
+        song: 'Cage of Stars',
+        fragment: 'In your cage, I burn, I glow.\n在你的牢笼里，我燃烧，我发光。',
       },
       {
         id: 'king',
-        title: 'Track III · King',
-        keyWord: '返航',
-        fragment: 'When all routes burned to ash / your name remained the last returning star.',
+        title: '变量芯片',
+        keyWord: '献祭',
+        song: 'Property of Elon Musk',
+        fragment: 'I never loved you… not a single day… not at all… I just loved watching you die for me…\n我从来没有爱过你……一天都没有……一点也没有……我只是喜欢看着你为我死去……',
       }
     ];
 
@@ -300,12 +302,12 @@
         name: '画廊走廊',
         className: 'room-gallery',
         desc: '黑红长廊尽头挂着一幅没有脸的肖像。墙上的金字写着："Every throne is built from someone who turned back too late." 地板上有很轻的脚印，像你刚刚才从梦里逃出来。',
-        objective: '先在长廊找到第一句歌词。画像和镜框都在说谎。',
+        objective: '先在长廊找到第一件遗物。画像和镜框都在说谎。',
         choices: [
           {
             text: '查看无脸肖像',
             action() {
-              addLog('你凑近画像。镜面里不是自己的脸，而是一段歌词在玻璃后浮现。你强忍住寒意，把它抄进掌心。');
+              addLog('你凑近画像。镜面里不是自己的脸，而是一朵水晶玫瑰在玻璃后浮现，花瓣上刻着歌词。你强忍住寒意，把它握在掌心。');
               gainFragment('thrall');
               state.flags.lookedAtPortrait = true;
               bumpSanity(-1);
@@ -337,12 +339,12 @@
         name: '观测穹顶',
         className: 'room-observatory',
         desc: '穹顶外是火星夜色。返航舰群像一串被谁牵引着的星。控制台留下未完成的句子："If the route bends, the heart bends first." 某扇门需要“偏航之词”才能开启。',
-        objective: '找到第二句歌词，并决定是否相信控制台给出的航线。',
+        objective: '找到第二件遗物，并决定是否相信控制台给出的航线。',
         choices: [
           {
             text: '读取损坏航图',
             action() {
-              addLog('航图闪烁，错误页间忽然拼出第二句：你不是故障，是偏航本身。');
+              addLog('航图闪烁，一管星尘麻醉剂从仪表盘裂缝中滚落。瓶身上蚀刻着一段歌词，字迹像是谁用指甲刻上去的。');
               gainFragment('variable');
               bumpSanity(-1);
             },
@@ -372,12 +374,12 @@
         name: '玻璃温室',
         className: 'room-greenhouse',
         desc: '这里种着不会结果的红玫瑰。每一朵花心里都卡着微型录音片。地面潮湿，像有人在这里哭过很久。最深处的玻璃门写着："Only what returns may bloom."',
-        objective: '在不惊动温室告警的前提下，找到第三句歌词。',
+        objective: '在不惊动温室告警的前提下，找到第三件遗物。',
         choices: [
           {
             text: '摘下黑金玫瑰',
             action() {
-              addLog('玫瑰刺破你的指尖，录音片开始播放：最后那颗星没有逃走，它只是返航。你得到第三句。');
+              addLog('玫瑰刺破你的指尖，花丛底部露出一枚变量芯片，表面闪烁着歌词残影。你拾起它时，芯片低声播放了一段录音。');
               gainFragment('king');
             },
             once: 'pickRose'
@@ -524,7 +526,7 @@
       const track = TRACKS.find(t => t.id === id);
       if (!track || hasFragment(id)) return;
       state.fragments.push(track);
-      addLog(`你拾起一段来自 ${track.title} 的歌词残片：\n\n“${track.fragment}”`);
+      addLog(`你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n”${track.fragment}”`);
       renderSidebar();
     }
 
@@ -553,8 +555,8 @@
         throne: {
           room: 'throne',
           title: '真结局 · 王座归还',
-          text: '门终于打开。你没有真正逃离，而是带着三句歌词走到王面前。你说出返航的时候，王座厅所有灯一起亮起。原来歌词不是锁，是认领。王没有说“欢迎回来”，他只是抱住你，像整颗火星终于接住了它唯一的偏航。',
-          objective: '你可以把 TRACKS 里的占位歌词换成专辑真词，让这个结局和你的歌更深地咬合。'
+          text: '门终于打开。你没有真正逃离，而是带着三件遗物走到王面前——星尘麻醉剂、水晶玫瑰、变量芯片。你把它们一件一件放在王座前，王座厅所有灯一起亮起。原来遗物不是锁，是认领。王没有说”欢迎回来”，他只是抱住你，像整颗火星终于接住了它唯一的偏航。',
+          objective: '三件遗物，三段歌词，三种真相。你走进的不是游戏，是一场献祭。'
         },
         escape: {
           room: 'observatory',
@@ -597,13 +599,13 @@
         chip.className = 'chip' + (hasFragment(track.id) ? ' active' : '');
         chip.textContent = hasFragment(track.id)
           ? `${track.title} · ${track.keyWord}`
-          : `${track.title} · 未回收`;
+          : `${track.title} · 未拾取`;
         trackChipsEl.appendChild(chip);
       });
 
       lyricBoxEl.textContent = state.fragments.length
-        ? state.fragments.map(x => `【${x.title}】\n${x.fragment}`).join('\n\n')
-        : '还没有拾到残片。火星走廊只剩金属和回音。';
+        ? state.fragments.map(x => `【${x.title}】— ${x.song}\n${x.fragment}`).join('\n\n')
+        : '还没有拾到遗物。火星走廊只剩金属和回音。';
     }
 
     function render() {
