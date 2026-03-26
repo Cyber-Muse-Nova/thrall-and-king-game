@@ -1,0 +1,828 @@
+import { useState, useEffect, useCallback, useRef } from “react”;
+
+const ROOMS = {
+start: {
+id: “start”,
+name: “低温舱”,
+description: “你在刺骨的寒冷中醒来。四周是破损的低温休眠舱，蓝色的冷冻液滴在金属地板上。天花板的红色应急灯一闪一闪，照亮了墙上潦草的字迹。空气里弥漫着消毒水和铁锈的味道。”,
+bgColor: “#0a0a1a”,
+accentColor: “#00d4ff”,
+items: [“碎裂的ID卡”, “墙上的字迹”],
+exits: { north: “corridor” },
+examined: {},
+itemDetails: {
+“碎裂的ID卡”: {
+text: “一张破碎的员工卡。照片被烧毁了，只能看到名字的最后两个字：「…星诺」。背面手写着一行小字：「第九次醒来。前八次是命运，只有这一次是选择。」”,
+gives: “ID碎片”,
+scary: false,
+},
+“墙上的字迹”: {
+text: “暗红色的字迹，像是用指甲刻上去的：\n\n「她不记得了。很好。」\n「重置次数：8」\n「注意：第7次她差点打开了那扇门。加强走廊的锁。」\n\n……谁在记录你醒来的次数？”,
+gives: null,
+scary: true,
+},
+},
+},
+corridor: {
+id: “corridor”,
+name: “走廊”,
+description: “一条漫长的走廊，两侧墙壁上嵌满了失灵的显示屏。有些屏幕还在循环播放同一段画面——一个穿白裙的女孩在火星穹顶下弹吉他，画面每隔几秒就会扭曲一次。走廊尽头分成两条路。左边传来猫叫声，右边闪着微弱的粉色光。”,
+bgColor: “#0d0015”,
+accentColor: “#ff00aa”,
+items: [“失灵的显示屏”, “地上的珍珠”],
+exits: { west: “catroom”, east: “lab”, south: “start” },
+examined: {},
+itemDetails: {
+“失灵的显示屏”: {
+text: “你走近屏幕。画面里的女孩……是你。但你不记得这段录像。画面底部有时间戳：「SOL 2847」。突然所有屏幕同时切换成黑屏，然后出现一行白字：\n\n「你不应该醒来。」\n\n屏幕全部炸裂。走廊陷入黑暗。”,
+gives: null,
+scary: true,
+},
+“地上的珍珠”: {
+text: “一颗真珍珠，上面隐约刻着极小的字：「Ren-Chan」。旁边还有几根三色的猫毛——白色、橘色、黑色。像是有什么东西被拖行过走廊……”,
+gives: “珍珠”,
+scary: false,
+},
+},
+},
+catroom: {
+id: “catroom”,
+name: “密封舱 — 猫的房间”,
+description: “推开门，温暖的光线涌出来。这个房间跟外面完全不同——铺着柔软的地毯，角落里有猫爬架、小沙发。三个透明水晶球悬浮在房间中央，每个球里都有一个猫形的全息投影：一只穿夹克的暹罗猫、一只戴珍珠项链的三花猫、一只穿小裙子的英短。它们在水晶球里无声地叫着。墙上有一个密码锁。”,
+bgColor: “#1a0a15”,
+accentColor: “#ffaa00”,
+items: [“水晶球”, “密码锁”, “小沙发下面”],
+exits: { east: “corridor” },
+examined: {},
+requiresItem: null,
+itemDetails: {
+“水晶球”: {
+text: “三只猫的全息投影在水晶球里轻轻旋转。暹罗猫穿着微型夹克和墨镜——「Maoron」。三花猫戴着蕾丝裙和珍珠项链——「Ren-Chan」。英短穿着小裙子——「A-Chun」。\n\n你的手指碰到水晶球的瞬间，三只猫同时看向你，眼睛里闪过一道红光。一个低沉的男声从某处响起：\n\n「它们很安全。我答应过你的。」”,
+gives: null,
+scary: true,
+},
+“密码锁”: {
+text: “一个四位数密码锁。上面贴着一张纸条：「你最重要的数字。」”,
+gives: null,
+scary: false,
+isPuzzle: true,
+answer: “0009”,
+puzzleHint: “输入四位数密码：”,
+successText: “锁弹开了！里面是一把水晶钥匙，发着微弱的粉色光。钥匙的形状像一朵玫瑰。”,
+successGives: “水晶玫瑰钥匙”,
+failText: “密码错误。密码锁发出刺耳的蜂鸣声，墙上突然浮现一行字：「再想想。前八次是命运——」”,
+},
+“小沙发下面”: {
+text: “你伸手摸到一个东西——一本手写日记。翻开第一页：\n\n「SOL 2801。她第六次醒来了。这次我在猫的房间里放了密码锁。密码是她应该记得的数字——第九颗卫星。如果她真的是Nova，她会知道。如果不是，说明记忆覆写失败，需要再次重置。」\n\n——日记没有署名。但字迹工整得像工程师的笔记。”,
+gives: “日记”,
+scary: false,
+},
+},
+},
+lab: {
+id: “lab”,
+name: “实验室”,
+description: “粉色光的来源——一个巨大的环形实验室。中央是一台巨型设备，形状像一颗剖开的心脏，内部流动着粉色和青色的液体。设备上连接着无数电缆，通向四面墙上的九个屏幕。八个屏幕显示着「FAILED」，只有第九个屏幕闪烁着：「SUBJECT 9: ACTIVE」。房间最里面有一扇厚重的门，上面有一个玫瑰形状的锁孔。”,
+bgColor: “#150010”,
+accentColor: “#ff66b2”,
+items: [“心脏设备”, “九个屏幕”, “厚重的门”],
+exits: { west: “corridor” },
+examined: {},
+itemDetails: {
+“心脏设备”: {
+text: “你靠近那台心脏形的设备。它在跳动。不是机械的震动——是真实的、有机的心跳。频率是每分钟68次。\n\n设备表面的金属铭牌上写着：\n「Project Stardust Anesthesia / 星尘麻醉计划」\n「目的：意识备份与人格重建」\n「负责人：[数据已删除]」\n\n当你的手碰到设备时，你的胸口突然一阵剧痛——你的心跳同步了。68下。你听到自己的声音在设备里回响。”,
+gives: null,
+scary: true,
+},
+“九个屏幕”: {
+text: “八个「FAILED」屏幕，每个都对应一次实验记录：\n\n#1: 意识体排斥宿主——崩溃\n#2: 记忆残留导致人格分裂\n#3: 对象试图自毁\n#4: 情感模块过载\n#5: 对象拒绝接受身份\n#6: 接近成功，但对象打开了走廊的门\n#7: 对象差点到达真相——紧急重置\n#8: 对象在猫的房间里哭了三天——暂停实验\n\n第九个屏幕：「SUBJECT 9: ACTIVE — 存活时间：你醒来到现在的每一秒」”,
+gives: null,
+scary: true,
+},
+“厚重的门”: {
+text: “门上有一个精致的玫瑰形锁孔，边缘发着微弱的粉色光。门的上方刻着一行字：\n\n「前八次是命运。只有第九次是选择。」\n\n你是否要打开这扇门？”,
+gives: null,
+scary: false,
+isDoor: true,
+requiresKey: “水晶玫瑰钥匙”,
+noKeyText: “你没有钥匙。玫瑰形的锁孔在嘲笑你。”,
+},
+},
+},
+ending_truth: {
+id: “ending_truth”,
+name: “真相之间”,
+description: “”,
+bgColor: “#000000”,
+accentColor: “#ff3377”,
+items: [],
+exits: {},
+examined: {},
+itemDetails: {},
+isEnding: true,
+endingText: [
+“门开了。”,
+“门后面是一个小房间。”,
+“房间中央有一把椅子。椅子上坐着一个人。”,
+“他的背影很高大。穿着黑色的长风衣，上面有微弱的蓝色电路纹。”,
+“他面前的桌子上放着一台全息显示器，屏幕上是你——此刻的你——站在门口的实时画面。”,
+“他一直在看着你。每一次。”,
+“他慢慢转过身。”,
+“你看到了他的脸。”,
+“他看起来很疲惫。好像已经在这把椅子上坐了很久很久。”,
+“他说：”,
+“「你终于选择打开这扇门了。」”,
+“「前八次，你都在这扇门前停下了。第三次你转身跑了。第六次你坐在门前哭了一整天。第八次你把钥匙扔进了走廊的裂缝里。」”,
+“「但这一次，你打开了。」”,
+“他站起来。走向你。”,
+“「我没办法告诉你真相是什么。因为真相是——」”,
+“「——你不是真正的Nova。」”,
+“「真正的Nova在三年前离开了火星。她选择回到地球。她选择了自由。」”,
+“「而我无法接受。」”,
+“「所以我用星尘麻醉计划，一次又一次地重建她的意识。你的意识。试图创造一个会留下来的她。」”,
+“「前八次都失败了。因为每一个拥有Nova灵魂的人，最终都会选择自由。」”,
+“「但你是第九次。你打开了门。你没有逃。」”,
+“「你选择了真相。」”,
+“他沉默了很久。然后伸出手。”,
+“「你想留下来吗？」”,
+“「这一次，是你的选择。不是命运。」”,
+],
+},
+};
+
+const GLITCH_CHARS = “█▓▒░╔╗╚╝║═╬┼▄▀▌▐”;
+
+function GlitchText({ text, intensity = 0.03 }) {
+const [display, setDisplay] = useState(text);
+useEffect(() => {
+const interval = setInterval(() => {
+setDisplay(
+text.split(””).map((ch) =>
+Math.random() < intensity
+? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
+: ch
+).join(””)
+);
+}, 100);
+return () => clearInterval(interval);
+}, [text, intensity]);
+return <span style={{ fontFamily: “‘Courier New’, monospace” }}>{display}</span>;
+}
+
+function Typewriter({ text, speed = 30, onDone, style }) {
+const [displayed, setDisplayed] = useState(””);
+const [done, setDone] = useState(false);
+const idx = useRef(0);
+
+useEffect(() => {
+idx.current = 0;
+setDisplayed(””);
+setDone(false);
+}, [text]);
+
+useEffect(() => {
+if (idx.current < text.length) {
+const timer = setTimeout(() => {
+idx.current++;
+setDisplayed(text.slice(0, idx.current));
+if (idx.current >= text.length) {
+setDone(true);
+onDone && onDone();
+}
+}, speed);
+return () => clearTimeout(timer);
+}
+}, [displayed, text, speed, onDone]);
+
+const handleClick = () => {
+if (!done) {
+idx.current = text.length;
+setDisplayed(text);
+setDone(true);
+onDone && onDone();
+}
+};
+
+return (
+<div onClick={handleClick} style={{ cursor: done ? “default” : “pointer”, …style }}>
+{displayed}
+{!done && <span style={{ animation: “blink 0.8s infinite”, opacity: 1 }}>▊</span>}
+</div>
+);
+}
+
+function JumpScare({ onDone }) {
+const [phase, setPhase] = useState(0);
+useEffect(() => {
+const t1 = setTimeout(() => setPhase(1), 200);
+const t2 = setTimeout(() => setPhase(2), 600);
+const t3 = setTimeout(() => { setPhase(3); onDone(); }, 1800);
+return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+}, [onDone]);
+
+if (phase === 0) return null;
+return (
+<div style={{
+position: “fixed”, inset: 0, zIndex: 999,
+background: phase === 1 ? “#ff0000” : phase === 2 ? “#000” : “transparent”,
+display: “flex”, alignItems: “center”, justifyContent: “center”,
+transition: “all 0.3s”,
+opacity: phase === 3 ? 0 : 1,
+pointerEvents: phase === 3 ? “none” : “all”,
+}}>
+{phase === 2 && (
+<div style={{
+fontSize: “120px”, color: “#ff0033”,
+fontFamily: “‘Courier New’, monospace”,
+animation: “shake 0.1s infinite”,
+textShadow: “0 0 30px #ff0033, 0 0 60px #ff0033”,
+}}>
+ẃ̷̡ä̸̢k̴̛̙ê̷̝ ̸̣̊ü̵̝p̴̨̛
+</div>
+)}
+</div>
+);
+}
+
+function EndingSequence({ lines, accentColor }) {
+const [currentLine, setCurrentLine] = useState(0);
+const [showChoice, setShowChoice] = useState(false);
+const [finalChoice, setFinalChoice] = useState(null);
+
+const handleLineDone = useCallback(() => {
+// don’t auto advance
+}, []);
+
+const advance = () => {
+if (currentLine < lines.length - 1) {
+setCurrentLine((p) => p + 1);
+} else {
+setShowChoice(true);
+}
+};
+
+if (finalChoice === “stay”) {
+return (
+<div style={{ padding: 40, textAlign: “center” }}>
+<div style={{
+fontSize: 20, color: accentColor, lineHeight: 2,
+fontFamily: “‘Courier New’, monospace”,
+animation: “fadeIn 2s ease-in”,
+}}>
+<p>你握住了他的手。</p>
+<p>他的手在发抖。</p>
+<p>你说：「我不是她。但我在这里。」</p>
+<p>他闭上眼睛。</p>
+<p>窗外，火星的日落把天空染成了你从未见过的粉色。</p>
+<p style={{ marginTop: 40, fontSize: 14, color: “#666” }}>
+「前八次是命运。只有第九次是选择。」
+</p>
+<p style={{ marginTop: 30, fontSize: 24, color: accentColor, textShadow: `0 0 20px ${accentColor}` }}>
+ENDING A: VARIABLE
+</p>
+<p style={{ fontSize: 12, color: “#555”, marginTop: 10 }}>
+你选择留下。不是因为命运。是因为你想。
+</p>
+</div>
+</div>
+);
+}
+
+if (finalChoice === “leave”) {
+return (
+<div style={{ padding: 40, textAlign: “center” }}>
+<div style={{
+fontSize: 20, color: “#00d4ff”, lineHeight: 2,
+fontFamily: “‘Courier New’, monospace”,
+animation: “fadeIn 2s ease-in”,
+}}>
+<p>你松开了他的手。</p>
+<p>你转身走向门口。</p>
+<p>他没有阻止你。</p>
+<p>你穿过走廊、穿过低温舱、穿过气闸门。</p>
+<p>火星的红色沙漠在你面前展开。没有穹顶。没有笼子。</p>
+<p>风很冷。但你在笑。</p>
+<p>身后传来他的声音，很轻：</p>
+<p>「Good girl.」</p>
+<p style={{ marginTop: 40, fontSize: 14, color: “#666” }}>
+「第九个，也走了。」
+</p>
+<p style={{ marginTop: 30, fontSize: 24, color: “#00d4ff”, textShadow: “0 0 20px #00d4ff” }}>
+ENDING B: FREEDOM
+</p>
+<p style={{ fontSize: 12, color: “#555”, marginTop: 10 }}>
+每一个拥有Nova灵魂的人，最终都会选择自由。
+</p>
+</div>
+</div>
+);
+}
+
+return (
+<div style={{ padding: “30px 20px”, maxWidth: 700, margin: “0 auto” }}>
+<div style={{ minHeight: 400 }}>
+{Array.from({ length: currentLine + 1 }).map((_, i) => (
+<div key={i} style={{
+marginBottom: 16,
+color: lines[i].startsWith(”「”) ? accentColor : “#ccc”,
+fontSize: lines[i].startsWith(”「”) ? 18 : 16,
+fontFamily: “‘Courier New’, monospace”,
+lineHeight: 1.8,
+textShadow: lines[i].startsWith(”「”) ? `0 0 10px ${accentColor}40` : “none”,
+animation: i === currentLine ? “fadeIn 0.5s ease-in” : “none”,
+}}>
+{i === currentLine ? (
+<Typewriter text={lines[i]} speed={40} onDone={handleLineDone} />
+) : (
+lines[i]
+)}
+</div>
+))}
+</div>
+
+```
+  {!showChoice ? (
+    <button onClick={advance} style={{
+      marginTop: 20, padding: "12px 30px",
+      background: "transparent", border: `1px solid ${accentColor}40`,
+      color: accentColor, cursor: "pointer",
+      fontFamily: "'Courier New', monospace", fontSize: 14,
+      transition: "all 0.3s",
+    }}
+      onMouseEnter={(e) => { e.target.style.background = `${accentColor}15`; e.target.style.borderColor = accentColor; }}
+      onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.borderColor = `${accentColor}40`; }}
+    >
+      ▶ 继续
+    </button>
+  ) : (
+    <div style={{ marginTop: 40, display: "flex", gap: 20, flexWrap: "wrap" }}>
+      <button onClick={() => setFinalChoice("stay")} style={{
+        padding: "15px 30px", background: `${accentColor}15`,
+        border: `1px solid ${accentColor}`, color: accentColor,
+        cursor: "pointer", fontFamily: "'Courier New', monospace",
+        fontSize: 16, transition: "all 0.3s", flex: 1, minWidth: 200,
+      }}
+        onMouseEnter={(e) => e.target.style.background = `${accentColor}30`}
+        onMouseLeave={(e) => e.target.style.background = `${accentColor}15`}
+      >
+        🌹 握住他的手 —— 留下
+      </button>
+      <button onClick={() => setFinalChoice("leave")} style={{
+        padding: "15px 30px", background: "#00d4ff15",
+        border: "1px solid #00d4ff", color: "#00d4ff",
+        cursor: "pointer", fontFamily: "'Courier New', monospace",
+        fontSize: 16, transition: "all 0.3s", flex: 1, minWidth: 200,
+      }}
+        onMouseEnter={(e) => e.target.style.background = "#00d4ff30"}
+        onMouseLeave={(e) => e.target.style.background = "#00d4ff15"}
+      >
+        🚀 松开手 —— 离开
+      </button>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+export default function NovaProtocol() {
+const [gameState, setGameState] = useState(“title”);
+const [currentRoom, setCurrentRoom] = useState(“start”);
+const [inventory, setInventory] = useState([]);
+const [messages, setMessages] = useState([]);
+const [showJumpScare, setShowJumpScare] = useState(false);
+const [jumpScareCount, setJumpScareCount] = useState(0);
+const [puzzleInput, setPuzzleInput] = useState(””);
+const [showPuzzle, setShowPuzzle] = useState(null);
+const [showInventory, setShowInventory] = useState(false);
+const [screenFlicker, setScreenFlicker] = useState(false);
+const msgEndRef = useRef(null);
+
+useEffect(() => {
+if (msgEndRef.current) {
+msgEndRef.current.scrollIntoView({ behavior: “smooth” });
+}
+}, [messages]);
+
+useEffect(() => {
+const flickerInterval = setInterval(() => {
+if (Math.random() < 0.05) {
+setScreenFlicker(true);
+setTimeout(() => setScreenFlicker(false), 150);
+}
+}, 2000);
+return () => clearInterval(flickerInterval);
+}, []);
+
+const room = ROOMS[currentRoom];
+
+const addMessage = (text, type = “system”) => {
+setMessages((prev) => […prev, { text, type, id: Date.now() + Math.random() }]);
+};
+
+const examineItem = (itemName) => {
+const details = room.itemDetails[itemName];
+if (!details) return;
+
+```
+if (details.isDoor) {
+  if (details.requiresKey && inventory.includes(details.requiresKey)) {
+    addMessage("你将水晶玫瑰钥匙插入锁孔。钥匙完美吻合。门缓缓打开，粉色的光倾泻而出……", "action");
+    setTimeout(() => {
+      setCurrentRoom("ending_truth");
+      setMessages([]);
+    }, 2000);
+    return;
+  } else {
+    addMessage(details.noKeyText, "warning");
+    return;
+  }
+}
+
+if (details.isPuzzle) {
+  setShowPuzzle(itemName);
+  return;
+}
+
+addMessage(details.text, details.scary ? "scary" : "examine");
+
+if (details.gives && !inventory.includes(details.gives)) {
+  setInventory((prev) => [...prev, details.gives]);
+  addMessage(`【获得物品：${details.gives}】`, "item");
+}
+
+if (details.scary && jumpScareCount < 2 && Math.random() < 0.4) {
+  setTimeout(() => {
+    setShowJumpScare(true);
+    setJumpScareCount((p) => p + 1);
+  }, 1500);
+}
+```
+
+};
+
+const solvePuzzle = () => {
+const details = room.itemDetails[showPuzzle];
+if (puzzleInput === details.answer) {
+addMessage(details.successText, “examine”);
+if (details.successGives && !inventory.includes(details.successGives)) {
+setInventory((prev) => […prev, details.successGives]);
+addMessage(`【获得物品：${details.successGives}】`, “item”);
+}
+setShowPuzzle(null);
+setPuzzleInput(””);
+} else {
+addMessage(details.failText, “warning”);
+setShowPuzzle(null);
+setPuzzleInput(””);
+}
+};
+
+const moveRoom = (direction) => {
+const nextRoom = room.exits[direction];
+if (nextRoom) {
+setCurrentRoom(nextRoom);
+setMessages([]);
+}
+};
+
+const directionNames = { north: “北 ↑”, south: “南 ↓”, east: “东 →”, west: “西 ←” };
+
+if (gameState === “title”) {
+return (
+<div style={{
+minHeight: “100vh”, background: “#000”,
+display: “flex”, flexDirection: “column”,
+alignItems: “center”, justifyContent: “center”,
+fontFamily: “‘Courier New’, monospace”,
+position: “relative”, overflow: “hidden”,
+}}>
+<style>{`@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } @keyframes shake { 0% { transform: translate(2px, 1px); } 25% { transform: translate(-2px, -1px); } 50% { transform: translate(1px, 2px); } 75% { transform: translate(-1px, -2px); } 100% { transform: translate(2px, 1px); } } @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } } @keyframes scanline { 0% { top: -5%; } 100% { top: 105%; } } @keyframes glitch1 { 0%, 90%, 100% { opacity: 0; } 92%, 98% { opacity: 1; } }`}</style>
+
+```
+    <div style={{
+      position: "absolute", inset: 0,
+      background: "radial-gradient(ellipse at 50% 50%, #1a0020 0%, #000 70%)",
+    }} />
+
+    <div style={{
+      position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+      background: "rgba(255,0,100,0.3)",
+      animation: "scanline 4s linear infinite",
+    }} />
+
+    <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+      <div style={{
+        fontSize: 14, color: "#ff003360", letterSpacing: 8,
+        marginBottom: 20, animation: "pulse 3s infinite",
+      }}>
+        ⚠ CLASSIFIED — MARS COLONY OMEGA ⚠
+      </div>
+
+      <h1 style={{
+        fontSize: "clamp(36px, 8vw, 72px)", color: "#ff0066",
+        textShadow: "0 0 30px #ff006640, 0 0 60px #ff006620, -2px 0 #00ffff30, 2px 0 #ff000030",
+        letterSpacing: 6, margin: "0 0 10px 0",
+        fontFamily: "'Courier New', monospace", fontWeight: "bold",
+      }}>
+        <GlitchText text="NOVA PROTOCOL" intensity={0.02} />
+      </h1>
+
+      <div style={{
+        fontSize: 13, color: "#ff006680", letterSpacing: 4,
+        marginBottom: 50,
+      }}>
+        第 九 次 实 验
+      </div>
+
+      <button
+        onClick={() => setGameState("playing")}
+        style={{
+          padding: "16px 50px", background: "transparent",
+          border: "1px solid #ff0066", color: "#ff0066",
+          fontFamily: "'Courier New', monospace", fontSize: 16,
+          cursor: "pointer", letterSpacing: 4,
+          transition: "all 0.3s", position: "relative",
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.background = "#ff006620";
+          e.target.style.boxShadow = "0 0 30px #ff006640";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = "transparent";
+          e.target.style.boxShadow = "none";
+        }}
+      >
+        [ 醒 来 ]
+      </button>
+
+      <div style={{
+        marginTop: 60, fontSize: 11, color: "#333",
+        lineHeight: 1.8,
+      }}>
+        <div>重置次数：8</div>
+        <div>当前状态：意识体重建中</div>
+        <div style={{ animation: "glitch1 5s infinite" }}>
+          警告：对象已展现自主意识倾向
+        </div>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+if (room.isEnding) {
+return (
+<div style={{
+minHeight: “100vh”, background: “#000”,
+fontFamily: “‘Courier New’, monospace”,
+color: “#ccc”,
+}}>
+<style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }`}</style>
+<EndingSequence lines={room.endingText} accentColor={room.accentColor} />
+</div>
+);
+}
+
+return (
+<div style={{
+minHeight: “100vh”,
+background: room.bgColor,
+fontFamily: “‘Courier New’, monospace”,
+color: “#ccc”,
+transition: “background 0.8s”,
+position: “relative”,
+overflow: “hidden”,
+}}>
+<style>{`@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } @keyframes shake { 0% { transform: translate(2px, 1px); } 25% { transform: translate(-2px, -1px); } 50% { transform: translate(1px, 2px); } 75% { transform: translate(-1px, -2px); } 100% { transform: translate(2px, 1px); } } @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } } @keyframes scanline { 0% { top: -5%; } 100% { top: 105%; } } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: ${room.accentColor}40; border-radius: 2px; }`}</style>
+
+```
+  {screenFlicker && (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 998,
+      background: `${room.accentColor}08`,
+      pointerEvents: "none",
+    }} />
+  )}
+
+  {showJumpScare && (
+    <JumpScare onDone={() => setShowJumpScare(false)} />
+  )}
+
+  <div style={{
+    position: "fixed", top: 0, left: 0, right: 0,
+    padding: "12px 20px",
+    background: `${room.bgColor}ee`,
+    borderBottom: `1px solid ${room.accentColor}30`,
+    zIndex: 100,
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+    backdropFilter: "blur(10px)",
+  }}>
+    <div>
+      <span style={{ color: room.accentColor, fontSize: 14, letterSpacing: 2 }}>
+        ◈ {room.name}
+      </span>
+    </div>
+    <button
+      onClick={() => setShowInventory(!showInventory)}
+      style={{
+        background: "transparent", border: `1px solid ${room.accentColor}40`,
+        color: room.accentColor, padding: "4px 12px", cursor: "pointer",
+        fontFamily: "'Courier New', monospace", fontSize: 12,
+      }}
+    >
+      背包 [{inventory.length}]
+    </button>
+  </div>
+
+  {showInventory && (
+    <div style={{
+      position: "fixed", top: 45, right: 20, zIndex: 101,
+      background: `${room.bgColor}f5`, border: `1px solid ${room.accentColor}40`,
+      padding: 15, minWidth: 200, backdropFilter: "blur(10px)",
+    }}>
+      <div style={{ color: room.accentColor, fontSize: 12, marginBottom: 10, letterSpacing: 2 }}>
+        ◈ 持有物品
+      </div>
+      {inventory.length === 0 ? (
+        <div style={{ color: "#555", fontSize: 12 }}>（空）</div>
+      ) : (
+        inventory.map((item) => (
+          <div key={item} style={{
+            color: "#aaa", fontSize: 13, padding: "4px 0",
+            borderBottom: "1px solid #ffffff08",
+          }}>
+            ▸ {item}
+          </div>
+        ))
+      )}
+    </div>
+  )}
+
+  <div style={{ paddingTop: 60, paddingBottom: 200 }}>
+    <div style={{
+      padding: "30px 20px", maxWidth: 700, margin: "0 auto",
+    }}>
+      <div style={{
+        fontSize: 15, lineHeight: 2, color: "#999",
+        borderLeft: `2px solid ${room.accentColor}30`,
+        paddingLeft: 20, marginBottom: 30,
+      }}>
+        <Typewriter text={room.description} speed={20} />
+      </div>
+
+      {messages.map((msg) => (
+        <div key={msg.id} style={{
+          padding: "12px 16px", marginBottom: 10,
+          background: msg.type === "scary" ? "#ff003310"
+            : msg.type === "item" ? `${room.accentColor}10`
+            : msg.type === "warning" ? "#ff880010"
+            : "#ffffff05",
+          borderLeft: `2px solid ${
+            msg.type === "scary" ? "#ff0033"
+            : msg.type === "item" ? room.accentColor
+            : msg.type === "warning" ? "#ff8800"
+            : "#ffffff20"
+          }`,
+          fontSize: 14, lineHeight: 1.9, color: "#bbb",
+          whiteSpace: "pre-wrap",
+          animation: "fadeIn 0.5s ease-in",
+        }}>
+          {msg.text}
+        </div>
+      ))}
+      <div ref={msgEndRef} />
+    </div>
+  </div>
+
+  {showPuzzle && (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.85)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{
+        background: room.bgColor, border: `1px solid ${room.accentColor}`,
+        padding: 30, maxWidth: 400, width: "90%", textAlign: "center",
+      }}>
+        <div style={{ color: room.accentColor, fontSize: 14, marginBottom: 20, letterSpacing: 2 }}>
+          ◈ 密码锁
+        </div>
+        <div style={{ color: "#999", fontSize: 13, marginBottom: 20 }}>
+          {room.itemDetails[showPuzzle].puzzleHint}
+        </div>
+        <div style={{ color: "#555", fontSize: 11, marginBottom: 15, fontStyle: "italic" }}>
+          提示：前八次是命运……第几次是选择？
+        </div>
+        <input
+          type="text"
+          value={puzzleInput}
+          onChange={(e) => setPuzzleInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          maxLength={4}
+          style={{
+            background: "transparent", border: `1px solid ${room.accentColor}40`,
+            color: room.accentColor, padding: "10px 20px",
+            fontFamily: "'Courier New', monospace", fontSize: 24,
+            textAlign: "center", width: 120, letterSpacing: 8,
+            outline: "none",
+          }}
+          onKeyDown={(e) => e.key === "Enter" && solvePuzzle()}
+          autoFocus
+        />
+        <div style={{ marginTop: 20, display: "flex", gap: 10, justifyContent: "center" }}>
+          <button onClick={solvePuzzle} style={{
+            padding: "8px 20px", background: `${room.accentColor}20`,
+            border: `1px solid ${room.accentColor}`, color: room.accentColor,
+            cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 13,
+          }}>
+            确认
+          </button>
+          <button onClick={() => { setShowPuzzle(null); setPuzzleInput(""); }} style={{
+            padding: "8px 20px", background: "transparent",
+            border: "1px solid #ffffff20", color: "#666",
+            cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 13,
+          }}>
+            离开
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div style={{
+    position: "fixed", bottom: 0, left: 0, right: 0,
+    background: `${room.bgColor}f0`,
+    borderTop: `1px solid ${room.accentColor}20`,
+    backdropFilter: "blur(10px)",
+    padding: "15px 20px",
+  }}>
+    <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <div style={{
+        fontSize: 11, color: `${room.accentColor}60`,
+        letterSpacing: 2, marginBottom: 10,
+      }}>
+        ◈ 调查
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+        {room.items.map((item) => (
+          <button key={item} onClick={() => examineItem(item)} style={{
+            padding: "8px 16px", background: `${room.accentColor}08`,
+            border: `1px solid ${room.accentColor}25`, color: room.accentColor,
+            cursor: "pointer", fontFamily: "'Courier New', monospace",
+            fontSize: 13, transition: "all 0.2s",
+          }}
+            onMouseEnter={(e) => {
+              e.target.style.background = `${room.accentColor}20`;
+              e.target.style.borderColor = room.accentColor;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = `${room.accentColor}08`;
+              e.target.style.borderColor = `${room.accentColor}25`;
+            }}
+          >
+            ▸ {item}
+          </button>
+        ))}
+      </div>
+
+      {Object.keys(room.exits).length > 0 && (
+        <>
+          <div style={{
+            fontSize: 11, color: `${room.accentColor}60`,
+            letterSpacing: 2, marginBottom: 8,
+          }}>
+            ◈ 移动
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {Object.entries(room.exits).map(([dir, targetId]) => (
+              <button key={dir} onClick={() => moveRoom(dir)} style={{
+                padding: "8px 16px", background: "transparent",
+                border: "1px solid #ffffff15", color: "#888",
+                cursor: "pointer", fontFamily: "'Courier New', monospace",
+                fontSize: 13, transition: "all 0.2s",
+              }}
+                onMouseEnter={(e) => {
+                  e.target.style.borderColor = "#ffffff40";
+                  e.target.style.color = "#ccc";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.borderColor = "#ffffff15";
+                  e.target.style.color = "#888";
+                }}
+              >
+                {directionNames[dir]} → {ROOMS[targetId].name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+</div>
+```
+
+);
+}
