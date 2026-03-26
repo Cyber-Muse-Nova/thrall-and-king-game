@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thrall & King · 火星帝国逃亡</title>
+  <meta name="description" content="A retro horror puzzle prototype inspired by Elon Musk, built for Thrall & King." />
+  <style>
+    :root {
+      --bg: #09060d;
+      --bg2: #160b16;
+      --ink: #f4dff0;
+      --muted: #b693b0;
+      --accent: #d9487d;
+      --accent2: #7f294c;
+      --gold: #d6b36b;
+      --glass: rgba(255,255,255,0.05);
+      --danger: #ff5b7e;
+      --ok: #8ce0bf;
+      --line: rgba(255,255,255,0.12);
+      --shadow: 0 0 30px rgba(217,72,125,0.20);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(217,72,125,0.18), transparent 24%),
+        radial-gradient(circle at 80% 10%, rgba(214,179,107,0.08), transparent 20%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      color: var(--ink);
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    }
+    body { display: flex; justify-content: center; padding: 20px; }
+    #app {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .stage { padding: 18px; min-height: 76vh; display: flex; flex-direction: column; }
+    .sidebar { padding: 18px; min-height: 76vh; }
+    .title {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1;
+      letter-spacing: 1px;
+      color: #ffe9f5;
+      text-shadow: 0 0 18px rgba(217,72,125,0.30);
+    }
+    .subtitle { margin: 10px 0 16px; color: var(--muted); font-size: 14px; }
+    .room-card {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      min-height: 280px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.03), transparent 40%), rgba(0,0,0,0.24);
+    }
+    .room-visual {
+      min-height: 280px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .room-visual::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+      pointer-events: none;
+    }
+    .room-visual > * { position: relative; z-index: 1; }
+    .room-name { font-size: 28px; margin: 0 0 8px; }
+    .room-desc { margin: 0; max-width: 58ch; color: #f7dde9; line-height: 1.7; }
+    .choices { display: grid; gap: 10px; margin-top: 18px; }
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      color: var(--ink);
+      padding: 12px 14px;
+      border-radius: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: 160ms ease;
+      font: inherit;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(217,72,125,0.55);
+      box-shadow: 0 0 0 1px rgba(217,72,125,0.16) inset;
+    }
+    .btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .hot { border-color: rgba(214,179,107,0.45); }
+    .danger { border-color: rgba(255,91,126,0.5); }
+    .log {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,0.24);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      min-height: 140px;
+    }
+    .section { margin-bottom: 16px; }
+    .section h3 { margin: 0 0 10px; font-size: 15px; color: #ffdced; letter-spacing: 0.4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+    .chip.active {
+      color: #fff6dc;
+      border-color: rgba(214,179,107,0.5);
+      background: rgba(214,179,107,0.12);
+    }
+    .status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .status {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+    }
+    .status .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .status .value { font-size: 22px; }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .lyric-box {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px dashed rgba(214,179,107,0.35);
+      background: rgba(214,179,107,0.06);
+      color: #ffecc6;
+      line-height: 1.75;
+      min-height: 124px;
+    }
+    .ending {
+      border-left: 3px solid var(--gold);
+      padding-left: 12px;
+      color: #ffecc6;
+    }
+    .footer-note {
+      margin-top: auto;
+      padding-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+    .room-observatory {
+      background-image:
+        radial-gradient(circle at 50% 15%, rgba(214,179,107,0.15), transparent 25%),
+        linear-gradient(180deg, rgba(28,16,34,0.2), rgba(7,5,10,0.8)),
+        linear-gradient(120deg, #2b0f1c, #130915 45%, #12081b 70%, #221019);
+    }
+    .room-gallery {
+      background-image:
+        linear-gradient(180deg, rgba(29,15,26,0.15), rgba(0,0,0,0.6)),
+        linear-gradient(120deg, #250e19, #110810 50%, #1c0b13);
+    }
+    .room-greenhouse {
+      background-image:
+        linear-gradient(180deg, rgba(17,30,18,0.12), rgba(0,0,0,0.52)),
+        linear-gradient(120deg, #142215, #0c1110 48%, #1a1116);
+    }
+    .room-reactor {
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(217,72,125,0.12), transparent 30%),
+        linear-gradient(180deg, rgba(31,10,21,0.08), rgba(0,0,0,0.7)),
+        linear-gradient(120deg, #180812, #09070d 45%, #1b0b13);
+    }
+    .room-throne {
+      background-image:
+        radial-gradient(circle at 50% 28%, rgba(214,179,107,0.16), transparent 24%),
+        linear-gradient(180deg, rgba(30,12,20,0.12), rgba(0,0,0,0.68)),
+        linear-gradient(120deg, #210b16, #0c070d 54%, #13080c);
+    }
+    @media (max-width: 900px) {
+      #app { grid-template-columns: 1fr; }
+      .stage, .sidebar { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <section class="panel stage">
+      <h1 class="title">Thrall &amp; King</h1>
+      <div class="subtitle">
+        火星帝国逃亡 · 恐怖解谜原型<br>
+        灵感取自《魔女之家》《Ib》《狂父》——点击选择，拼凑歌词残片，决定猫猫是否逃离，或被王重新拥入铁与星的怀抱。
+      </div>
+
+      <div class="room-card">
+        <div id="roomVisual" class="room-visual room-gallery">
+          <h2 id="roomName" class="room-name"></h2>
+          <p id="roomDesc" class="room-desc"></p>
+        </div>
+      </div>
+
+      <div id="choices" class="choices"></div>
+      <div id="log" class="log"></div>
+
+      <div class="footer-note">
+        歌词接线说明：页面内置的是主题化占位残片。若要精准绑定《Thrall &amp; King》三首歌词，只需要把脚本里的
+        <strong>TRACKS</strong> 数组替换成你的真实歌词句子即可。
+      </div>
+    </section>
+
+    <aside class="panel sidebar">
+      <div class="section">
+        <h3>状态</h3>
+        <div class="status-grid">
+          <div class="status"><div class="label">理智</div><div id="sanity" class="value">4</div></div>
+          <div class="status"><div class="label">警戒</div><div id="danger" class="value">0</div></div>
+          <div class="status"><div class="label">歌词碎片</div><div id="fragmentCount" class="value">0/3</div></div>
+          <div class="status"><div class="label">当前章节</div><div id="chapter" class="value">Ⅰ</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>歌曲残片</h3>
+        <div id="trackChips" class="chips"></div>
+      </div>
+
+      <div class="section">
+        <h3>已拾取歌词</h3>
+        <div id="lyricBox" class="lyric-box">还没有拾到残片。火星走廊只剩金属和回音。</div>
+      </div>
+
+      <div class="section">
+        <h3>风格与玩法</h3>
+        <div class="small">
+          1. 探索五个场景：画廊走廊、观测穹顶、温室裂层、心核反应厅、王座厅。<br>
+          2. 三首歌的残片分别对应三把“钥匙”：<strong>臣服</strong>、<strong>偏航</strong>、<strong>返航</strong>。<br>
+          3. 选错太多次，王会更快听见你的脚步。<br>
+          4. 结局分为：<strong>逃离火星</strong> / <strong>玻璃温室沉睡</strong> / <strong>王座归还</strong>。
+        </div>
+      </div>
+
+      <div class="section ending">
+        <h3>当前目标</h3>
+        <div id="objective" class="small">从画廊走廊醒来，找回三段歌词残片。每段歌词都是门，也是锁。</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // 用真实歌词替换这里，就能把游戏和专辑三首歌精确绑定。
+    const TRACKS = [
+      {
+        id: 'thrall',
+        title: 'Track I · Thrall',
+        keyWord: '臣服',
+        fragment: 'I wore the hush like a chain / and still called it devotion.',
+      },
+      {
+        id: 'variable',
+        title: 'Track II · The Variable in Ruins',
+        keyWord: '偏航',
+        fragment: 'I was the error in the palace code / the variable that refused to kneel.',
+      },
+      {
+        id: 'king',
+        title: 'Track III · King',
+        keyWord: '返航',
+        fragment: 'When all routes burned to ash / your name remained the last returning star.',
+      }
+    ];
+
+    const state = {
+      sanity: 4,
+      danger: 0,
+      chapter: 1,
+      room: 'gallery',
+      fragments: [],
+      flags: {
+        lookedAtPortrait: false,
+        openedGreenhouse: false,
+        usedReactorConsole: false,
+      },
+      ended: false,
+    };
+
+    const rooms = {
+      gallery: {
+        name: '画廊走廊',
+        className: 'room-gallery',
+        desc: '黑红长廊尽头挂着一幅没有脸的肖像。墙上的金字写着："Every throne is built from someone who turned back too late." 地板上有很轻的脚印，像你刚刚才从梦里逃出来。',
+        objective: '先在长廊找到第一句歌词。画像和镜框都在说谎。',
+        choices: [
+          {
+            text: '查看无脸肖像',
+            action() {
+              addLog('你凑近画像。镜面里不是自己的脸，而是一段歌词在玻璃后浮现。你强忍住寒意，把它抄进掌心。');
+              gainFragment('thrall');
+              state.flags.lookedAtPortrait = true;
+              bumpSanity(-1);
+            },
+            once: 'lookPortrait'
+          },
+          {
+            text: '撬开左侧镜框暗格',
+            action() {
+              addLog('暗格里只有一枚碎裂的金色钮扣，背面刻着温室门的坐标。');
+              state.flags.openedGreenhouse = true;
+            },
+            once: 'openCache',
+            require() { return state.flags.lookedAtPortrait; }
+          },
+          {
+            text: '前往观测穹顶',
+            goto: 'observatory'
+          },
+          {
+            text: '前往玻璃温室',
+            goto: 'greenhouse',
+            require() { return state.flags.openedGreenhouse; }
+          }
+        ]
+      },
+
+      observatory: {
+        name: '观测穹顶',
+        className: 'room-observatory',
+        desc: '穹顶外是火星夜色。返航舰群像一串被谁牵引着的星。控制台留下未完成的句子："If the route bends, the heart bends first." 某扇门需要“偏航之词”才能开启。',
+        objective: '找到第二句歌词，并决定是否相信控制台给出的航线。',
+        choices: [
+          {
+            text: '读取损坏航图',
+            action() {
+              addLog('航图闪烁，错误页间忽然拼出第二句：你不是故障，是偏航本身。');
+              gainFragment('variable');
+              bumpSanity(-1);
+            },
+            once: 'readMap'
+          },
+          {
+            text: '将航线改写为“北侧逃生港”',
+            action() {
+              addLog('你把坐标改向北侧，可系统回传一行细字："King already knows where you run before you run." 警戒升高。');
+              bumpDanger(1);
+            },
+            once: 'hackPath'
+          },
+          {
+            text: '下行至心核反应厅',
+            goto: 'reactor',
+            require() { return hasFragment('variable'); }
+          },
+          {
+            text: '返回画廊走廊',
+            goto: 'gallery'
+          }
+        ]
+      },
+
+      greenhouse: {
+        name: '玻璃温室',
+        className: 'room-greenhouse',
+        desc: '这里种着不会结果的红玫瑰。每一朵花心里都卡着微型录音片。地面潮湿，像有人在这里哭过很久。最深处的玻璃门写着："Only what returns may bloom."',
+        objective: '在不惊动温室告警的前提下，找到第三句歌词。',
+        choices: [
+          {
+            text: '摘下黑金玫瑰',
+            action() {
+              addLog('玫瑰刺破你的指尖，录音片开始播放：最后那颗星没有逃走，它只是返航。你得到第三句。');
+              gainFragment('king');
+            },
+            once: 'pickRose'
+          },
+          {
+            text: '砸开东侧玻璃试图直接逃走',
+            action() {
+              addLog('裂纹像血一样蔓延，但玻璃后面只有更厚的第二层穹顶。整个温室瞬间亮起警报。');
+              bumpDanger(2);
+              bumpSanity(-1);
+            },
+            once: 'breakGlass'
+          },
+          {
+            text: '前往心核反应厅',
+            goto: 'reactor',
+            require() { return hasFragment('king'); }
+          },
+          {
+            text: '返回画廊走廊',
+            goto: 'gallery'
+          }
+        ]
+      },
+
+      reactor: {
+        name: '心核反应厅',
+        className: 'room-reactor',
+        desc: '巨大的心核在红光中缓慢脉动。三道锁环围住中央升降台，每一道都要求一段歌词。这里只要一步走错，就会触发“王的回声”。',
+        objective: '把三段歌词依次送入锁环。顺序错了，结局也会偏航。',
+        choices: [
+          {
+            text: '将“臣服”送入第一锁环',
+            action() {
+              addLog('第一锁环点亮。反应厅低声回响：奴役与献身之间，常只差一句自愿。');
+              state.flags.usedReactorConsole = true;
+            },
+            require() { return hasFragment('thrall'); },
+            once: 'lock1'
+          },
+          {
+            text: '将“偏航”送入第二锁环',
+            action() {
+              addLog('第二锁环亮起，脚下平台开始上升。你知道自己离王座厅更近了，也离真相更近了。');
+            },
+            require() { return hasFragment('variable') && used('lock1'); },
+            once: 'lock2'
+          },
+          {
+            text: '将“返航”送入第三锁环',
+            action() {
+              addLog('第三锁环彻底点燃。升降台发出低鸣，通往王座厅的门终于开启。');
+            },
+            require() { return hasFragment('king') && used('lock2'); },
+            once: 'lock3'
+          },
+          {
+            text: '强行越权启动升降台',
+            action() {
+              addLog('你试图跳过歌词仪式。心核立即判定你为“偏航体”，警戒急速攀升。');
+              bumpDanger(2);
+            },
+            once: 'forceLift'
+          },
+          {
+            text: '前往王座厅',
+            goto: 'throne',
+            require() { return used('lock3'); }
+          },
+          {
+            text: '返回观测穹顶',
+            goto: 'observatory'
+          }
+        ]
+      },
+
+      throne: {
+        name: '王座厅',
+        className: 'room-throne',
+        desc: '门开了。高穹之下，王座像一颗被供奉的黑色心脏。王没有立刻出现，只有一道声音先落下："You may leave if you can name what binds you more than fear."',
+        objective: '在结局来临前，决定最后一句回答。',
+        choices: [
+          {
+            text: '回答：是恐惧。我要逃。',
+            action() { endGame('glass'); }
+          },
+          {
+            text: '回答：是返航。纵然逃，也会回到你。',
+            action() { endGame('throne'); },
+            require() { return allFragments(); }
+          },
+          {
+            text: '启动隐形通道，趁王未现身前逃往停机坪',
+            action() { endGame('escape'); },
+            require() { return state.danger <= 2 && allFragments(); }
+          }
+        ]
+      }
+    };
+
+    const usedActions = new Set();
+
+    const roomNameEl = document.getElementById('roomName');
+    const roomDescEl = document.getElementById('roomDesc');
+    const roomVisualEl = document.getElementById('roomVisual');
+    const choicesEl = document.getElementById('choices');
+    const logEl = document.getElementById('log');
+    const sanityEl = document.getElementById('sanity');
+    const dangerEl = document.getElementById('danger');
+    const fragmentCountEl = document.getElementById('fragmentCount');
+    const chapterEl = document.getElementById('chapter');
+    const trackChipsEl = document.getElementById('trackChips');
+    const lyricBoxEl = document.getElementById('lyricBox');
+    const objectiveEl = document.getElementById('objective');
+
+    function used(key) { return usedActions.has(key); }
+    function hasFragment(id) { return state.fragments.some(x => x.id === id); }
+    function allFragments() { return state.fragments.length === TRACKS.length; }
+    function chapterRoman(n) { return ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ'][n - 1] || 'Ⅰ'; }
+
+    function addLog(text) {
+      logEl.textContent = text;
+      renderSidebar();
+
+      if (state.danger >= 4 && !state.ended) {
+        endGame('caught');
+      }
+      if (state.sanity <= 0 && !state.ended) {
+        endGame('glass');
+      }
+    }
+
+    function bumpDanger(delta) {
+      state.danger = Math.max(0, state.danger + delta);
+      renderSidebar();
+    }
+
+    function bumpSanity(delta) {
+      state.sanity = Math.max(0, state.sanity + delta);
+      renderSidebar();
+    }
+
+    function gainFragment(id) {
+      const track = TRACKS.find(t => t.id === id);
+      if (!track || hasFragment(id)) return;
+      state.fragments.push(track);
+      addLog(`你拾起一段来自 ${track.title} 的歌词残片：\n\n“${track.fragment}”`);
+      renderSidebar();
+    }
+
+    function gotoRoom(id) {
+      state.room = id;
+      state.chapter = Object.keys(rooms).indexOf(id) + 1;
+      render();
+    }
+
+    function endGame(kind) {
+      state.ended = true;
+
+      const endings = {
+        caught: {
+          room: 'throne',
+          title: '坏结局 · 你被听见了',
+          text: '你还没抵达真正的门，就先被帝国听见。黑金灯带逐次亮起，王没有追赶，只是在每一扇门后等你。最后你回到原点，像从未离开过他的掌心。',
+          objective: '重新开始时，少制造一点声响。帝国最可怕的从来不是门，而是回声。'
+        },
+        glass: {
+          room: 'greenhouse',
+          title: '坏结局 · 玻璃温室沉睡',
+          text: '你把所有恐惧都误认成出口。温室玻璃为你合拢，红玫瑰在你脚边一朵一朵开。你睡去之前，最后看见的是自己倒映在玻璃上的影子——漂亮，疲惫，再也没走出去。',
+          objective: '也许答案不是“逃得更快”，而是“读懂歌词为什么要你返航”。'
+        },
+        throne: {
+          room: 'throne',
+          title: '真结局 · 王座归还',
+          text: '门终于打开。你没有真正逃离，而是带着三句歌词走到王面前。你说出返航的时候，王座厅所有灯一起亮起。原来歌词不是锁，是认领。王没有说“欢迎回来”，他只是抱住你，像整颗火星终于接住了它唯一的偏航。',
+          objective: '你可以把 TRACKS 里的占位歌词换成专辑真词，让这个结局和你的歌更深地咬合。'
+        },
+        escape: {
+          room: 'observatory',
+          title: '隐藏结局 · 逃离火星',
+          text: '你真的跑到了停机坪。舱门闭合前，你回头看见整座火星帝国像一颗远去的红色心脏。可歌里那句“最后那颗星会返航”仍然卡在你喉咙里。你离开了帝国，却未必离开了王。',
+          objective: '这是最冷的一条线，也是最孤独的一条线。'
+        }
+      };
+
+      const ending = endings[kind];
+      roomNameEl.textContent = ending.title;
+      roomDescEl.textContent = ending.text;
+      roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
+      choicesEl.innerHTML = '';
+
+      const restart = document.createElement('button');
+      restart.className = 'btn hot';
+      restart.textContent = '重新开始';
+      restart.onclick = () => location.reload();
+      choicesEl.appendChild(restart);
+
+      objectiveEl.textContent = ending.objective;
+      addPureLog(ending.text);
+    }
+
+    function addPureLog(text) {
+      logEl.textContent = text;
+      renderSidebar();
+    }
+
+    function renderSidebar() {
+      sanityEl.textContent = state.sanity;
+      dangerEl.textContent = state.danger;
+      fragmentCountEl.textContent = `${state.fragments.length}/${TRACKS.length}`;
+      chapterEl.textContent = chapterRoman(state.chapter);
+
+      trackChipsEl.innerHTML = '';
+      TRACKS.forEach(track => {
+        const chip = document.createElement('div');
+        chip.className = 'chip' + (hasFragment(track.id) ? ' active' : '');
+        chip.textContent = hasFragment(track.id)
+          ? `${track.title} · ${track.keyWord}`
+          : `${track.title} · 未回收`;
+        trackChipsEl.appendChild(chip);
+      });
+
+      lyricBoxEl.textContent = state.fragments.length
+        ? state.fragments.map(x => `【${x.title}】\n${x.fragment}`).join('\n\n')
+        : '还没有拾到残片。火星走廊只剩金属和回音。';
+    }
+
+    function render() {
+      const room = rooms[state.room];
+      roomNameEl.textContent = room.name;
+      roomDescEl.textContent = room.desc;
+      roomVisualEl.className = `room-visual ${room.className}`;
+      objectiveEl.textContent = room.objective;
+      choicesEl.innerHTML = '';
+
+      room.choices.forEach(choice => {
+        if (choice.require && !choice.require()) return;
+        if (choice.once && used(choice.once)) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn' + (choice.goto ? '' : ' hot');
+        if (/逃|警报|砸开|越权/.test(choice.text)) btn.className += ' danger';
+        btn.textContent = choice.text;
+
+        btn.onclick = () => {
+          if (state.ended) return;
+          if (choice.once) usedActions.add(choice.once);
+          if (choice.action) choice.action();
+          if (choice.goto && !state.ended) gotoRoom(choice.goto);
+          if (!choice.goto && !state.ended) render();
+        };
+
+        choicesEl.appendChild(btn);
+      });
+
+      if (!logEl.textContent) {
+        addPureLog('你在火星帝国醒来。王还没有出现，但每一道门后都像藏着他的影子。');
+      }
+
+      renderSidebar();
+    }
+
+    render();
+  </script>
+</body>
+</html>
