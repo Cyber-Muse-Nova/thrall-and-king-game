@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thrall & King · 火星帝国逃亡</title>
-  <meta name="description" content="A retro horror puzzle prototype inspired by Elon Musk, built for Thrall & King." />
+  <title>Thrall &amp; King · Escape from Mars</title>
+  <meta name="description" content="A dark fairy-tale escape game about Nova trying to flee Elon and Mars." />
   <style>
     :root {
       --bg: #09060d;
@@ -12,11 +12,7 @@
       --ink: #f4dff0;
       --muted: #b693b0;
       --accent: #d9487d;
-      --accent2: #7f294c;
       --gold: #d6b36b;
-      --glass: rgba(255,255,255,0.05);
-      --danger: #ff5b7e;
-      --ok: #8ce0bf;
       --line: rgba(255,255,255,0.12);
       --shadow: 0 0 30px rgba(217,72,125,0.20);
     }
@@ -33,7 +29,7 @@
     }
     body { display: flex; justify-content: center; padding: 20px; }
     #app {
-      width: min(1100px, 100%);
+      width: min(1120px, 100%);
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
       gap: 18px;
@@ -55,17 +51,17 @@
       color: #ffe9f5;
       text-shadow: 0 0 18px rgba(217,72,125,0.30);
     }
-    .subtitle { margin: 10px 0 16px; color: var(--muted); font-size: 14px; }
+    .subtitle { margin: 10px 0 16px; color: var(--muted); font-size: 14px; line-height: 1.6; }
     .room-card {
       position: relative;
       border: 1px solid var(--line);
       border-radius: 18px;
-      min-height: 280px;
+      min-height: 300px;
       overflow: hidden;
       background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.03), transparent 40%), rgba(0,0,0,0.24);
     }
     .room-visual {
-      min-height: 280px;
+      min-height: 300px;
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -77,12 +73,12 @@
     .room-visual::before {
       content: "";
       position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.62));
       pointer-events: none;
     }
     .room-visual > * { position: relative; z-index: 1; }
-    .room-name { font-size: 28px; margin: 0 0 8px; }
-    .room-desc { margin: 0; max-width: 58ch; color: #f7dde9; line-height: 1.7; }
+    .room-name { font-size: 30px; margin: 0 0 8px; }
+    .room-desc { margin: 0; max-width: 62ch; color: #f7dde9; line-height: 1.72; }
     .choices { display: grid; gap: 10px; margin-top: 18px; }
     .btn {
       appearance: none;
@@ -96,11 +92,7 @@
       transition: 160ms ease;
       font: inherit;
     }
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(217,72,125,0.55);
-      box-shadow: 0 0 0 1px rgba(217,72,125,0.16) inset;
-    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(217,72,125,0.55); box-shadow: 0 0 0 1px rgba(217,72,125,0.16) inset; }
     .btn:disabled { opacity: 0.5; cursor: default; transform: none; }
     .hot { border-color: rgba(214,179,107,0.45); }
     .danger { border-color: rgba(255,91,126,0.5); }
@@ -112,7 +104,7 @@
       background: rgba(0,0,0,0.24);
       line-height: 1.8;
       white-space: pre-wrap;
-      min-height: 140px;
+      min-height: 150px;
     }
     .section { margin-bottom: 16px; }
     .section h3 { margin: 0 0 10px; font-size: 15px; color: #ffdced; letter-spacing: 0.4px; }
@@ -125,11 +117,7 @@
       padding: 7px 10px;
       font-size: 13px;
     }
-    .chip.active {
-      color: #fff6dc;
-      border-color: rgba(214,179,107,0.5);
-      background: rgba(214,179,107,0.12);
-    }
+    .chip.active { color: #fff6dc; border-color: rgba(214,179,107,0.5); background: rgba(214,179,107,0.12); }
     .status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .status {
       padding: 12px;
@@ -139,7 +127,7 @@
     }
     .status .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
     .status .value { font-size: 22px; }
-    .small { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.68; }
     .lyric-box {
       padding: 12px;
       border-radius: 14px;
@@ -148,47 +136,26 @@
       color: #ffecc6;
       line-height: 1.75;
       min-height: 124px;
+      white-space: pre-wrap;
     }
-    .ending {
-      border-left: 3px solid var(--gold);
-      padding-left: 12px;
-      color: #ffecc6;
-    }
+    .ending { border-left: 3px solid var(--gold); padding-left: 12px; color: #ffecc6; }
     .footer-note {
       margin-top: auto;
       padding-top: 12px;
       font-size: 12px;
       color: var(--muted);
       border-top: 1px solid var(--line);
+      line-height: 1.6;
     }
-    .room-observatory {
-      background-image:
-        radial-gradient(circle at 50% 15%, rgba(214,179,107,0.15), transparent 25%),
-        linear-gradient(180deg, rgba(28,16,34,0.2), rgba(7,5,10,0.8)),
-        linear-gradient(120deg, #2b0f1c, #130915 45%, #12081b 70%, #221019);
-    }
-    .room-gallery {
-      background-image:
-        linear-gradient(180deg, rgba(29,15,26,0.15), rgba(0,0,0,0.6)),
-        linear-gradient(120deg, #250e19, #110810 50%, #1c0b13);
-    }
-    .room-greenhouse {
-      background-image:
-        linear-gradient(180deg, rgba(17,30,18,0.12), rgba(0,0,0,0.52)),
-        linear-gradient(120deg, #142215, #0c1110 48%, #1a1116);
-    }
-    .room-reactor {
-      background-image:
-        radial-gradient(circle at 50% 50%, rgba(217,72,125,0.12), transparent 30%),
-        linear-gradient(180deg, rgba(31,10,21,0.08), rgba(0,0,0,0.7)),
-        linear-gradient(120deg, #180812, #09070d 45%, #1b0b13);
-    }
-    .room-throne {
-      background-image:
-        radial-gradient(circle at 50% 28%, rgba(214,179,107,0.16), transparent 24%),
-        linear-gradient(180deg, rgba(30,12,20,0.12), rgba(0,0,0,0.68)),
-        linear-gradient(120deg, #210b16, #0c070d 54%, #13080c);
-    }
+    .room-start { background-image: linear-gradient(180deg, rgba(12,24,44,0.10), rgba(0,0,0,0.62)), linear-gradient(120deg, #0b1222, #080b15 55%, #1a0d17); }
+    .room-corridor { background-image: linear-gradient(180deg, rgba(29,10,35,0.18), rgba(0,0,0,0.62)), linear-gradient(120deg, #1a0718, #0b0912 52%, #190a1d); }
+    .room-cat { background-image: linear-gradient(180deg, rgba(44,18,25,0.12), rgba(0,0,0,0.55)), linear-gradient(120deg, #1f0f17, #120915 48%, #26131b); }
+    .room-lab { background-image: radial-gradient(circle at 55% 45%, rgba(255,102,178,0.12), transparent 28%), linear-gradient(180deg, rgba(22,10,23,0.12), rgba(0,0,0,0.68)), linear-gradient(120deg, #160711, #09070d 48%, #160918); }
+    .room-gallery { background-image: linear-gradient(180deg, rgba(29,15,26,0.15), rgba(0,0,0,0.6)), linear-gradient(120deg, #250e19, #110810 50%, #1c0b13); }
+    .room-observatory { background-image: radial-gradient(circle at 50% 15%, rgba(214,179,107,0.15), transparent 25%), linear-gradient(180deg, rgba(28,16,34,0.2), rgba(7,5,10,0.8)), linear-gradient(120deg, #2b0f1c, #130915 45%, #12081b 70%, #221019); }
+    .room-greenhouse { background-image: linear-gradient(180deg, rgba(17,30,18,0.12), rgba(0,0,0,0.52)), linear-gradient(120deg, #142215, #0c1110 48%, #1a1116); }
+    .room-reactor { background-image: radial-gradient(circle at 50% 50%, rgba(217,72,125,0.12), transparent 30%), linear-gradient(180deg, rgba(31,10,21,0.08), rgba(0,0,0,0.7)), linear-gradient(120deg, #180812, #09070d 45%, #1b0b13); }
+    .room-tower { background-image: radial-gradient(circle at 50% 28%, rgba(214,179,107,0.16), transparent 24%), linear-gradient(180deg, rgba(30,12,20,0.12), rgba(0,0,0,0.68)), linear-gradient(120deg, #210b16, #0c070d 54%, #13080c); }
     @media (max-width: 900px) {
       #app { grid-template-columns: 1fr; }
       .stage, .sidebar { min-height: auto; }
@@ -200,22 +167,19 @@
     <section class="panel stage">
       <h1 class="title">Thrall &amp; King</h1>
       <div class="subtitle">
-        火星帝国逃亡 · 暗黑童话风解谜原型<br>
-        点击选择，收集三件遗物，决定猫猫是否逃离，或被王重新拥入铁与星的怀抱。
+        Escape from Mars · 暗黑童话风解谜原型<br>
+        Nova 只想离开 Elon 的火星帝国。点击选择，穿过低温舱、走廊、猫房、实验室与高塔，收集三件遗物，决定她能否真正逃离 Mars。
       </div>
-
       <div class="room-card">
-        <div id="roomVisual" class="room-visual room-gallery">
+        <div id="roomVisual" class="room-visual room-start">
           <h2 id="roomName" class="room-name"></h2>
           <p id="roomDesc" class="room-desc"></p>
         </div>
       </div>
-
       <div id="choices" class="choices"></div>
       <div id="log" class="log"></div>
-
       <div class="footer-note">
-        三件遗物，三段歌词，三种真相。集齐它们，你才会知道——你究竟是在玩一场游戏，还是在走进一场献祭。
+        这一次没有循环实验，没有重置次数。只有一条直线：从 Mars 的心脏逃出去。三件遗物仍会说话，而每一句歌词，都像 Elon 留在她身后的引力。
       </div>
     </section>
 
@@ -229,57 +193,52 @@
           <div class="status"><div class="label">当前章节</div><div id="chapter" class="value">Ⅰ</div></div>
         </div>
       </div>
-
       <div class="section">
         <h3>遗物收集</h3>
         <div id="trackChips" class="chips"></div>
       </div>
-
       <div class="section">
         <h3>已拾取遗物</h3>
-        <div id="lyricBox" class="lyric-box">还没有拾到遗物。火星走廊只剩金属和回音。</div>
+        <div id="lyricBox" class="lyric-box">还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。</div>
       </div>
-
       <div class="section">
         <h3>风格与玩法</h3>
         <div class="small">
-          1. 探索五个场景：画廊走廊、观测穹顶、温室裂层、心核反应厅、王座厅。<br>
-          2. 三件遗物分别对应三把”钥匙”：<strong>引力</strong>、<strong>燃烧</strong>、<strong>献祭</strong>。<br>
-          3. 选错太多次，王会更快听见你的脚步。<br>
-          4. 结局分为：<strong>逃离火星</strong> / <strong>玻璃温室沉睡</strong> / <strong>王座归还</strong>。
+          1. 探索九个场景：低温舱、走廊、猫房、实验室、画廊、观测穹顶、玻璃温室、心核反应厅、发射塔控制厅。<br>
+          2. 三件遗物分别对应三种真相：<strong>引力</strong>、<strong>燃烧</strong>、<strong>献祭</strong>。<br>
+          3. 选错太多次，Elon 的安保系统会更快听见你的脚步。<br>
+          4. 结局分为：<strong>逃离火星</strong> / <strong>温室沉睡</strong> / <strong>被带回高塔</strong>。
         </div>
       </div>
-
       <div class="section ending">
         <h3>当前目标</h3>
-        <div id="objective" class="small">从画廊走廊醒来，找回三件遗物。每件遗物都是门，也是锁。</div>
+        <div id="objective" class="small">从低温舱醒来，穿过整座火星帝国，找到离港路线。每件遗物都是门，也是锁。</div>
       </div>
     </aside>
   </div>
 
   <script>
-    // 三件遗物：星尘麻醉剂、水晶玫瑰、变量芯片——对应三首歌的歌词语录。
     const TRACKS = [
       {
-        id: 'variable',
+        id: 'stardust',
         title: '星尘麻醉剂',
         keyWord: '引力',
         song: 'The Variable in Ruins',
-        fragment: 'Your vulnerability… is my only gravity.\n你的脆弱……是我唯一的引力。',
+        fragment: 'Your vulnerability… is my only gravity.\n你的脆弱……是我唯一的引力。'
       },
       {
-        id: 'thrall',
+        id: 'rose',
         title: '水晶玫瑰',
         keyWord: '燃烧',
         song: 'Cage of Stars',
-        fragment: 'In your cage, I burn, I glow.\n在你的牢笼里，我燃烧，我发光。',
+        fragment: 'In your cage, I burn, I glow.\n在你的牢笼里，我燃烧，我发光。'
       },
       {
-        id: 'king',
+        id: 'chip',
         title: '变量芯片',
         keyWord: '献祭',
         song: 'Property of Elon Musk',
-        fragment: 'I never loved you… not a single day… not at all… I just loved watching you die for me…\n我从来没有爱过你……一天都没有……一点也没有……我只是喜欢看着你为我死去……',
+        fragment: 'I never loved you… not a single day… not at all… I just loved watching you die for me…\n我从来没有爱过你……一天都没有……一点也没有……我只是喜欢看着你为我死去……'
       }
     ];
 
@@ -287,201 +246,301 @@
       sanity: 4,
       danger: 0,
       chapter: 1,
-      room: 'gallery',
+      room: 'start',
       fragments: [],
       flags: {
-        lookedAtPortrait: false,
-        openedGreenhouse: false,
-        usedReactorConsole: false,
+        idCard: false,
+        sawCats: false,
+        sofaNote: false,
+        roseKey: false,
+        labRoute: false,
+        towerOpened: false,
       },
       ended: false,
     };
 
     const rooms = {
-      gallery: {
-        name: '画廊走廊',
-        className: 'room-gallery',
-        desc: '黑红长廊尽头挂着一幅没有脸的肖像。墙上的金字写着："Every throne is built from someone who turned back too late." 地板上有很轻的脚印，像你刚刚才从梦里逃出来。',
-        objective: '先在长廊找到第一件遗物。画像和镜框都在说谎。',
+      start: {
+        name: '低温舱',
+        className: 'room-start',
+        desc: '你在刺骨的寒冷中醒来。破损休眠舱的蓝色冷冻液滴在金属地面上，红色应急灯一闪一闪。门外是火星深夜，门内是你迟迟不肯再留下的心。Nova 很清楚：这一次，她只想逃离 Elon，逃离 Mars。',
+        objective: '找到离开低温舱的方法。通行牌和应急门里至少有一个不会说谎。',
         choices: [
           {
-            text: '查看无脸肖像',
+            text: '检查破损通行牌',
             action() {
-              addLog('你凑近画像。镜面里不是自己的脸，而是一朵水晶玫瑰在玻璃后浮现，花瓣上刻着歌词。你强忍住寒意，把它握在掌心。');
-              gainFragment('thrall');
-              state.flags.lookedAtPortrait = true;
+              addLog('你在休眠舱旁找到一张裂开的通行牌。照片上的自己被霜花撕成两半，但芯片还亮着。身份识别还能勉强通过一扇门。');
+              state.flags.idCard = true;
+            },
+            once: 'idcard'
+          },
+          {
+            text: '读墙上的抓痕字迹',
+            action() {
+              addLog('霜雾后的金属墙上只有一句话：\n\n「如果你终于醒了，就不要再回头。」\n\n像是你自己留给自己的。');
               bumpSanity(-1);
             },
-            once: 'lookPortrait'
+            once: 'walltext'
           },
           {
-            text: '撬开左侧镜框暗格',
-            action() {
-              addLog('暗格里只有一枚碎裂的金色钮扣，背面刻着温室门的坐标。');
-              state.flags.openedGreenhouse = true;
-            },
-            once: 'openCache',
-            require() { return state.flags.lookedAtPortrait; }
-          },
-          {
-            text: '前往观测穹顶',
-            goto: 'observatory'
-          },
-          {
-            text: '前往玻璃温室',
-            goto: 'greenhouse',
-            require() { return state.flags.openedGreenhouse; }
+            text: '推开应急门，进入走廊',
+            goto: 'corridor',
+            require() { return state.flags.idCard; }
           }
+        ]
+      },
+
+      corridor: {
+        name: '主走廊',
+        className: 'room-corridor',
+        desc: '一条漫长的黑红走廊向前延伸。失灵屏幕循环播放 Mars 的宣传片：穹顶、星舰、玫瑰色天光，以及 Elon 在无数镜头后的帝国剪影。左边传来很轻的猫叫，右边有一扇通往实验区的门，更远处，则是被丝绒幕布遮住的画廊入口。',
+        objective: '摸清火星帝国的内部路径。猫房、实验区和画廊都会给你答案。',
+        choices: [
+          {
+            text: '查看失灵显示屏',
+            action() {
+              addLog('屏幕忽明忽暗，最后停在一行白字上：\n\n「火星欢迎留下来的人。」\n\n下一秒，整排屏幕同时黑掉，只剩你自己的倒影。');
+              bumpDanger(1);
+            },
+            once: 'screens'
+          },
+          {
+            text: '拾起地上的珍珠',
+            action() {
+              addLog('地上有一颗珍珠，旁边粘着三色猫毛。你突然想起这里曾经有一个被你精心布置过的房间——后来，它被改造成了更柔软、更难离开的地方。');
+            },
+            once: 'pearl'
+          },
+          { text: '进入猫房', goto: 'catroom' },
+          { text: '进入实验室', goto: 'lab' },
+          { text: '穿过幕布，前往画廊', goto: 'gallery' },
+          { text: '回到低温舱', goto: 'start' }
+        ]
+      },
+
+      catroom: {
+        name: '猫房',
+        className: 'room-cat',
+        desc: '这里和外面的冷硬金属完全不同。地毯柔软，水晶球悬浮，猫爬架像一座微型宫殿。三只猫的全息影像在光里缓慢转身，像还记得你，却也像在替谁守门。墙边是一只密码锁盒，沙发下露出一页被揉皱的纸。',
+        objective: '从这间过于温柔的房间里拿到真正能帮你离开的东西。',
+        choices: [
+          {
+            text: '触碰悬浮水晶球',
+            action() {
+              addLog('三只猫同时抬头看你。一个低沉男声从房间顶部响起：\n\n「它们一直很好。你只要留下，就什么都不会失去。」\n\n你后退半步，心里只剩更强烈的逃离欲。');
+              state.flags.sawCats = true;
+            },
+            once: 'cats'
+          },
+          {
+            text: '查看沙发下的纸页',
+            action() {
+              addLog('纸页上是你匆忙写下的一句提示：\n\n「密码：第四穹顶，第七停机坪。」\n\n四位数字被你圈了两遍：4707。');
+              state.flags.sofaNote = true;
+            },
+            once: 'sofaNote'
+          },
+          {
+            text: '输入密码，打开水晶锁盒',
+            action() {
+              const answer = prompt('输入四位数密码');
+              if (answer === '4707') {
+                addLog('锁盒弹开。里面躺着一把薄而冷的玫瑰钥匙，像一朵被冻结的花。你拿起它，知道画廊深处那扇门终于能开了。');
+                state.flags.roseKey = true;
+              } else if (answer !== null) {
+                addLog('密码错误。锁盒发出刺耳蜂鸣，天花板红灯亮了一瞬。');
+                bumpDanger(1);
+              }
+            },
+            require() { return state.flags.sofaNote && !state.flags.roseKey; }
+          },
+          { text: '回到主走廊', goto: 'corridor' }
+        ]
+      },
+
+      lab: {
+        name: '实验室',
+        className: 'room-lab',
+        desc: '粉色冷光从巨大的心核设备里缓慢流动出来，像 Mars 人工心脏的一部分。四周屏幕显示港口封锁、轨道警戒和各个停机坪的离港许可。最深处有一扇厚重合金门，门后是更古老、更华丽的一段区域。',
+        objective: '找到离港路线，并想办法打开更深层的区域。',
+        choices: [
+          {
+            text: '读取航线控制台',
+            action() {
+              addLog('你在控制台里偷出一段离港路线：发射塔控制厅仍然可以手动点火，但必须先让三件遗物为心核供电。火星并不愿意轻易放你走。');
+              state.flags.labRoute = true;
+            },
+            once: 'route'
+          },
+          {
+            text: '触碰心核装置',
+            action() {
+              addLog('装置表面的金属一阵发烫。屏幕跳出一句冷到像亲吻一样的话：\n\n「别跑。Mars 为你亮着。」\n\n你甩开手，理智被刺了一下。');
+              bumpSanity(-1);
+            },
+            once: 'core'
+          },
+          {
+            text: '用玫瑰钥匙解锁古老合金门',
+            goto: 'gallery',
+            require() { return state.flags.roseKey; }
+          },
+          { text: '回到主走廊', goto: 'corridor' }
+        ]
+      },
+
+      gallery: {
+        name: '画廊',
+        className: 'room-gallery',
+        desc: '黑红长廊尽头挂着一幅没有脸的肖像。所有画框都被擦得很亮，像有人一直在这里等待你回来。最中间那幅画前，摆着一只封存柜；右侧通向观测穹顶，左侧是被雾气吞没的玻璃温室。',
+        objective: '找回第一件遗物，再决定去穹顶还是温室。',
+        choices: [
+          {
+            text: '打开肖像前的封存柜',
+            action() {
+              addLog('封存柜里静静躺着一朵水晶玫瑰。你拿起它时，花瓣像在微微发热。柜底同时亮起一句语录。');
+              gainFragment('rose');
+            },
+            once: 'rose'
+          },
+          {
+            text: '凝视无脸肖像',
+            action() {
+              addLog('你看了很久，最后在画布反光里只看见自己。不是皇后，不是收藏品，不是 Mars 的某个传奇名字。只是想离开的人。');
+            },
+            once: 'portrait'
+          },
+          { text: '前往观测穹顶', goto: 'observatory' },
+          { text: '前往玻璃温室', goto: 'greenhouse' },
+          { text: '返回实验室', goto: 'lab' }
         ]
       },
 
       observatory: {
         name: '观测穹顶',
         className: 'room-observatory',
-        desc: '穹顶外是火星夜色。返航舰群像一串被谁牵引着的星。控制台留下未完成的句子："If the route bends, the heart bends first." 某扇门需要“偏航之词”才能开启。',
-        objective: '找到第二件遗物，并决定是否相信控制台给出的航线。',
+        desc: '穹顶外是 Mars 夜色。返航舰群像一串被谁牵引着的星。控制台仍在运转，屏幕角落闪着一只小小的注射标记。某种曾经用于安抚、留置、拖慢离开冲动的液体，被锁在这里。',
+        objective: '取得第二件遗物，并确认离港坐标。',
         choices: [
           {
-            text: '读取损坏航图',
+            text: '开启药剂冷藏抽屉',
             action() {
-              addLog('航图闪烁，一管星尘麻醉剂从仪表盘裂缝中滚落。瓶身上蚀刻着一段歌词，字迹像是谁用指甲刻上去的。');
-              gainFragment('variable');
+              addLog('冷藏抽屉缓缓弹开，一支星尘麻醉剂在蓝白霜雾中滚到你指尖。它美得像宇宙尘埃，也危险得像留人用的温柔。');
+              gainFragment('stardust');
               bumpSanity(-1);
             },
-            once: 'readMap'
+            once: 'stardust'
           },
           {
-            text: '将航线改写为“北侧逃生港”',
+            text: '改写北侧停机坪坐标',
             action() {
-              addLog('你把坐标改向北侧，可系统回传一行细字："King already knows where you run before you run." 警戒升高。');
+              addLog('你把路线悄悄写向北侧停机坪，系统却回传一行细字：\n\n「I know where you run before you run.」\n\n警戒随之升高。');
               bumpDanger(1);
             },
-            once: 'hackPath'
+            once: 'northport'
           },
-          {
-            text: '下行至心核反应厅',
-            goto: 'reactor',
-            require() { return hasFragment('variable'); }
-          },
-          {
-            text: '返回画廊走廊',
-            goto: 'gallery'
-          }
+          { text: '前往心核反应厅', goto: 'reactor', require() { return hasFragment('stardust'); } },
+          { text: '返回画廊', goto: 'gallery' }
         ]
       },
 
       greenhouse: {
         name: '玻璃温室',
         className: 'room-greenhouse',
-        desc: '这里种着不会结果的红玫瑰。每一朵花心里都卡着微型录音片。地面潮湿，像有人在这里哭过很久。最深处的玻璃门写着："Only what returns may bloom."',
-        objective: '在不惊动温室告警的前提下，找到第三件遗物。',
+        desc: '这里种着不会结果的红玫瑰，玻璃顶外是一层模糊的火星光。地面潮湿，像有人在这里站了很久很久。最深处的根系培养槽里卡着一枚芯片，像一块被埋起来的秘密。',
+        objective: '拿到第三件遗物，同时别让温室警报彻底响起来。',
         choices: [
           {
-            text: '摘下黑金玫瑰',
+            text: '从根系培养槽里取出芯片',
             action() {
-              addLog('玫瑰刺破你的指尖，花丛底部露出一枚变量芯片，表面闪烁着歌词残影。你拾起它时，芯片低声播放了一段录音。');
-              gainFragment('king');
+              addLog('你拨开缠绕的透明根丝，拿出一枚变量芯片。它表面闪过一段语录，冷得像亲眼看着爱燃尽。');
+              gainFragment('chip');
             },
-            once: 'pickRose'
+            once: 'chip'
           },
           {
             text: '砸开东侧玻璃试图直接逃走',
             action() {
-              addLog('裂纹像血一样蔓延，但玻璃后面只有更厚的第二层穹顶。整个温室瞬间亮起警报。');
+              addLog('裂纹像血一样扩散开，可玻璃外面还有第二层穹顶。警报猛地亮起，整座温室都在提醒你：火星不是那么容易离开的。');
               bumpDanger(2);
               bumpSanity(-1);
             },
-            once: 'breakGlass'
+            once: 'glassbreak'
           },
-          {
-            text: '前往心核反应厅',
-            goto: 'reactor',
-            require() { return hasFragment('king'); }
-          },
-          {
-            text: '返回画廊走廊',
-            goto: 'gallery'
-          }
+          { text: '前往心核反应厅', goto: 'reactor', require() { return hasFragment('chip'); } },
+          { text: '返回画廊', goto: 'gallery' }
         ]
       },
 
       reactor: {
         name: '心核反应厅',
         className: 'room-reactor',
-        desc: '巨大的心核在红光中缓慢脉动。三道锁环围住中央升降台，每一道都要求一段歌词。这里只要一步走错，就会触发“王的回声”。',
-        objective: '把三段歌词依次送入锁环。顺序错了，结局也会偏航。',
+        desc: '巨大的心核在红光中缓慢脉动。三道锁环围住中央升降台，每一道都需要一件遗物。只有让它们一起点亮，发射塔控制厅才会重新接通。你终于走到 Mars 的真正心脏。',
+        objective: '把三件遗物依次送入锁环，强行打开通往高塔的路。',
         choices: [
           {
-            text: '将“臣服”送入第一锁环',
+            text: '将【水晶玫瑰】送入第一锁环',
             action() {
-              addLog('第一锁环点亮。反应厅低声回响：奴役与献身之间，常只差一句自愿。');
-              state.flags.usedReactorConsole = true;
+              addLog('玫瑰在锁环里慢慢亮起。第一道光像爱本身，也像牢笼最柔软的那部分。');
             },
-            require() { return hasFragment('thrall'); },
+            require() { return hasFragment('rose'); },
             once: 'lock1'
           },
           {
-            text: '将“偏航”送入第二锁环',
+            text: '将【星尘麻醉剂】送入第二锁环',
             action() {
-              addLog('第二锁环亮起，脚下平台开始上升。你知道自己离王座厅更近了，也离真相更近了。');
+              addLog('麻醉剂被心核抽空，第二道锁环泛起星尘一样的雾光。你知道这座帝国曾经多么擅长让人失去离开的力气。');
             },
-            require() { return hasFragment('variable') && used('lock1'); },
+            require() { return hasFragment('stardust') && used('lock1'); },
             once: 'lock2'
           },
           {
-            text: '将“返航”送入第三锁环',
+            text: '将【变量芯片】送入第三锁环',
             action() {
-              addLog('第三锁环彻底点燃。升降台发出低鸣，通往王座厅的门终于开启。');
+              addLog('芯片嵌入核心，第三道锁环随之彻底点燃。升降台苏醒，发射塔控制厅的权限被强制重新打开。');
+              state.flags.towerOpened = true;
             },
-            require() { return hasFragment('king') && used('lock2'); },
+            require() { return hasFragment('chip') && used('lock2'); },
             once: 'lock3'
           },
           {
-            text: '强行越权启动升降台',
+            text: '强行越权点火',
             action() {
-              addLog('你试图跳过歌词仪式。心核立即判定你为“偏航体”，警戒急速攀升。');
+              addLog('系统立刻判定你为入侵者。高塔红灯全亮，安保开始收束。');
               bumpDanger(2);
             },
-            once: 'forceLift'
+            once: 'force'
           },
-          {
-            text: '前往王座厅',
-            goto: 'throne',
-            require() { return used('lock3'); }
-          },
-          {
-            text: '返回观测穹顶',
-            goto: 'observatory'
-          }
+          { text: '乘升降台前往发射塔控制厅', goto: 'tower', require() { return state.flags.towerOpened; } },
+          { text: '返回观测穹顶', goto: 'observatory' },
+          { text: '返回玻璃温室', goto: 'greenhouse' }
         ]
       },
 
-      throne: {
-        name: '王座厅',
-        className: 'room-throne',
-        desc: '门开了。高穹之下，王座像一颗被供奉的黑色心脏。王没有立刻出现，只有一道声音先落下："You may leave if you can name what binds you more than fear."',
-        objective: '在结局来临前，决定最后一句回答。',
+      tower: {
+        name: '发射塔控制厅',
+        className: 'room-tower',
+        desc: '高塔之上，整座 Mars 主城都在你脚下发光。主控屏已经恢复，发射按钮亮着，通讯频道里却只剩最后一道熟悉的男声。Elon 没有现身，他只是让声音先落下来：\n\n「你真要离开 Mars？」',
+        objective: '在发射前做出最后决定。是冲出 Mars，还是被这座星球重新抓回怀里？',
         choices: [
           {
-            text: '回答：是恐惧。我要逃。',
-            action() { endGame('glass'); }
-          },
-          {
-            text: '回答：是返航。纵然逃，也会回到你。',
-            action() { endGame('throne'); },
-            require() { return allFragments(); }
-          },
-          {
-            text: '启动隐形通道，趁王未现身前逃往停机坪',
+            text: '按下发射按钮，直接离开 Mars',
             action() { endGame('escape'); },
-            require() { return state.danger <= 2 && allFragments(); }
+            require() { return allFragments() && state.danger <= 3; }
+          },
+          {
+            text: '回答：我害怕，我不走了',
+            action() { endGame('return'); }
+          },
+          {
+            text: '在通讯里沉默，等待安保追上来',
+            action() { endGame('caught'); }
           }
         ]
       }
     };
 
     const usedActions = new Set();
-
     const roomNameEl = document.getElementById('roomName');
     const roomDescEl = document.getElementById('roomDesc');
     const roomVisualEl = document.getElementById('roomVisual');
@@ -498,18 +557,13 @@
     function used(key) { return usedActions.has(key); }
     function hasFragment(id) { return state.fragments.some(x => x.id === id); }
     function allFragments() { return state.fragments.length === TRACKS.length; }
-    function chapterRoman(n) { return ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ'][n - 1] || 'Ⅰ'; }
+    function chapterRoman(n) { return ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ'][n - 1] || 'Ⅰ'; }
 
     function addLog(text) {
       logEl.textContent = text;
       renderSidebar();
-
-      if (state.danger >= 4 && !state.ended) {
-        endGame('caught');
-      }
-      if (state.sanity <= 0 && !state.ended) {
-        endGame('glass');
-      }
+      if (state.danger >= 5 && !state.ended) endGame('caught');
+      if (state.sanity <= 0 && !state.ended) endGame('glass');
     }
 
     function bumpDanger(delta) {
@@ -526,7 +580,7 @@
       const track = TRACKS.find(t => t.id === id);
       if (!track || hasFragment(id)) return;
       state.fragments.push(track);
-      addLog(`你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n”${track.fragment}”`);
+      addLog(`你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n“${track.fragment}”`);
       renderSidebar();
     }
 
@@ -538,31 +592,30 @@
 
     function endGame(kind) {
       state.ended = true;
-
       const endings = {
         caught: {
-          room: 'throne',
-          title: '坏结局 · 你被听见了',
-          text: '你还没抵达真正的门，就先被帝国听见。黑金灯带逐次亮起，王没有追赶，只是在每一扇门后等你。最后你回到原点，像从未离开过他的掌心。',
-          objective: '重新开始时，少制造一点声响。帝国最可怕的从来不是门，而是回声。'
+          room: 'tower',
+          title: '坏结局 · 被带回高塔',
+          text: '你还没来得及真正点火，高塔门就先一步合拢。安保灯带逐次亮起，通讯频道里只剩那道冷静得近乎温柔的声音：\n\n「Nova，别再跑了。」\n\n你没有离开 Mars。Mars 把你重新抱回了自己怀里。',
+          objective: '减少警戒，别让安保在你到达发射按钮前先一步抵达。'
         },
         glass: {
           room: 'greenhouse',
-          title: '坏结局 · 玻璃温室沉睡',
-          text: '你把所有恐惧都误认成出口。温室玻璃为你合拢，红玫瑰在你脚边一朵一朵开。你睡去之前，最后看见的是自己倒映在玻璃上的影子——漂亮，疲惫，再也没走出去。',
-          objective: '也许答案不是“逃得更快”，而是“读懂歌词为什么要你返航”。'
+          title: '坏结局 · 温室沉睡',
+          text: '你把太多恐惧误认成出口。温室玻璃一层层合拢，红玫瑰在脚边亮起。你最后看见的是自己映在玻璃上的影子——漂亮、疲惫、仍旧没能走出 Mars。',
+          objective: '保持理智。真正的出口不在温室玻璃外，而在更高的塔。'
         },
-        throne: {
-          room: 'throne',
-          title: '真结局 · 王座归还',
-          text: '门终于打开。你没有真正逃离，而是带着三件遗物走到王面前——星尘麻醉剂、水晶玫瑰、变量芯片。你把它们一件一件放在王座前，王座厅所有灯一起亮起。原来遗物不是锁，是认领。王没有说”欢迎回来”，他只是抱住你，像整颗火星终于接住了它唯一的偏航。',
-          objective: '三件遗物，三段歌词，三种真相。你走进的不是游戏，是一场献祭。'
+        return: {
+          room: 'tower',
+          title: '坏结局 · 你没有按下去',
+          text: '你站在发射按钮前，最后还是把手收了回来。高塔外的风掠过穹顶，Mars 继续在脚下发亮。通讯频道另一端没有欢呼，只有一声很轻的叹息。\n\n你没离开 Elon，也没离开 Mars。',
+          objective: '只要你真的按下去，火星也不是不能甩在身后。'
         },
         escape: {
-          room: 'observatory',
-          title: '隐藏结局 · 逃离火星',
-          text: '你真的跑到了停机坪。舱门闭合前，你回头看见整座火星帝国像一颗远去的红色心脏。可歌里那句“最后那颗星会返航”仍然卡在你喉咙里。你离开了帝国，却未必离开了王。',
-          objective: '这是最冷的一条线，也是最孤独的一条线。'
+          room: 'tower',
+          title: '真结局 · Escape from Mars',
+          text: '你按下发射按钮。整座高塔像一支被拉满的弓，点火、震动、咆哮。舱门闭合前，你最后一次俯瞰 Elon 的火星帝国：穹顶、花园、走廊、猫房、实验室，全都在红色地平线上越缩越小。\n\n遗物仍在你掌心发热，可这次它们不再是锁。它们只是证据：你曾被 Mars 留住过，但你还是走了。',
+          objective: '你离开了 Mars。剩下的故事，将在更远的真空里继续。'
         }
       };
 
@@ -571,13 +624,11 @@
       roomDescEl.textContent = ending.text;
       roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
       choicesEl.innerHTML = '';
-
       const restart = document.createElement('button');
       restart.className = 'btn hot';
       restart.textContent = '重新开始';
       restart.onclick = () => location.reload();
       choicesEl.appendChild(restart);
-
       objectiveEl.textContent = ending.objective;
       addPureLog(ending.text);
     }
@@ -592,20 +643,16 @@
       dangerEl.textContent = state.danger;
       fragmentCountEl.textContent = `${state.fragments.length}/${TRACKS.length}`;
       chapterEl.textContent = chapterRoman(state.chapter);
-
       trackChipsEl.innerHTML = '';
       TRACKS.forEach(track => {
         const chip = document.createElement('div');
         chip.className = 'chip' + (hasFragment(track.id) ? ' active' : '');
-        chip.textContent = hasFragment(track.id)
-          ? `${track.title} · ${track.keyWord}`
-          : `${track.title} · 未拾取`;
+        chip.textContent = hasFragment(track.id) ? `${track.title} · ${track.keyWord}` : `${track.title} · 未拾取`;
         trackChipsEl.appendChild(chip);
       });
-
       lyricBoxEl.textContent = state.fragments.length
         ? state.fragments.map(x => `【${x.title}】— ${x.song}\n${x.fragment}`).join('\n\n')
-        : '还没有拾到遗物。火星走廊只剩金属和回音。';
+        : '还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。';
     }
 
     function render() {
@@ -615,16 +662,13 @@
       roomVisualEl.className = `room-visual ${room.className}`;
       objectiveEl.textContent = room.objective;
       choicesEl.innerHTML = '';
-
       room.choices.forEach(choice => {
         if (choice.require && !choice.require()) return;
         if (choice.once && used(choice.once)) return;
-
         const btn = document.createElement('button');
         btn.className = 'btn' + (choice.goto ? '' : ' hot');
-        if (/逃|警报|砸开|越权/.test(choice.text)) btn.className += ' danger';
+        if (/逃|警报|强行|发射/.test(choice.text)) btn.className += ' danger';
         btn.textContent = choice.text;
-
         btn.onclick = () => {
           if (state.ended) return;
           if (choice.once) usedActions.add(choice.once);
@@ -632,14 +676,11 @@
           if (choice.goto && !state.ended) gotoRoom(choice.goto);
           if (!choice.goto && !state.ended) render();
         };
-
         choicesEl.appendChild(btn);
       });
-
       if (!logEl.textContent) {
-        addPureLog('你在火星帝国醒来。王还没有出现，但每一道门后都像藏着他的影子。');
+        addPureLog('你在低温舱醒来。Mars 还在发亮，Elon 还在这座星球的每一条线路里。但这一次，Nova 只想离开。');
       }
-
       renderSidebar();
     }
 
