@@ -206,6 +206,67 @@
             100% { opacity: 0; }
         }
 
+        /* ── BGM 播放器 ── */
+        .bgm-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .bgm-player button {
+            appearance: none;
+            border: none;
+            background: none;
+            color: var(--accent);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .bgm-player button:hover { color: #ff88bb; }
+        .bgm-track-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--ink);
+            font-size: 12px;
+        }
+        .bgm-player select {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+            color: var(--ink);
+            font: inherit;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            max-width: 110px;
+        }
+        /* ── 频谱 ── */
+        .spectrum-wrap {
+            height: 32px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            margin-bottom: 10px;
+            padding: 0 2px;
+        }
+        .spectrum-wrap .bar {
+            flex: 1;
+            background: linear-gradient(0deg, var(--accent), var(--gold));
+            border-radius: 2px 2px 0 0;
+            min-width: 3px;
+            transition: height 80ms ease;
+        }
+
         .choices {
             display: grid;
             gap: 10px;
@@ -731,6 +792,20 @@
         </section>
         <aside class="panel sidebar">
             <div class="section">
+                <h3>BGM</h3>
+                <div class="bgm-player">
+                    <button id="bgmPlayBtn" title="播放/暂停">▶</button>
+                    <span class="bgm-track-name" id="bgmTrackName">飙车bgm</span>
+                    <select id="bgmSelect">
+                        <option value="0">飙车bgm</option>
+                        <option value="1">Cage of Stars</option>
+                        <option value="2">Cage of Black Hole</option>
+                        <option value="3">Heat Death</option>
+                    </select>
+                </div>
+                <div class="spectrum-wrap" id="spectrum"></div>
+            </div>
+            <div class="section">
                 <h3>状态</h3>
                 <div class="status-grid">
                     <div class="status">
@@ -771,6 +846,76 @@
     </div>
     <script>
         const GLITCH_CHARS = '█▓▒░╔╗╚╝║═╬┼▄▀▌▐';
+
+        /* ── BGM 系统 ── */
+        const BGM_LIST = [
+            { name: '飙车bgm', src: '飙车bgm 2.mp3' },
+            { name: 'Cage of Stars', src: 'cage-of-stars.mp3' },
+            { name: 'Cage of Black Hole', src: 'cage-of-black-hole 2.mp3' },
+            { name: 'Heat Death', src: 'heat-death.mp3' }
+        ];
+        const bgmAudio = new Audio(BGM_LIST[0].src);
+        bgmAudio.loop = true;
+        bgmAudio.volume = 0.5;
+        let bgmPlaying = false;
+        let bgmIndex = 0;
+        let audioCtx, analyser, srcNode, spectrumBars = [];
+
+        function initAudioCtx() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            srcNode = audioCtx.createMediaElementSource(bgmAudio);
+            srcNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            const wrap = document.getElementById('spectrum');
+            const barCount = analyser.frequencyBinCount;
+            for (let i = 0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = '2px';
+                wrap.appendChild(bar);
+                spectrumBars.push(bar);
+            }
+            drawSpectrum();
+        }
+
+        function drawSpectrum() {
+            if (!analyser) return;
+            requestAnimationFrame(drawSpectrum);
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+            for (let i = 0; i < spectrumBars.length; i++) {
+                const h = Math.max(2, (data[i] / 255) * 32);
+                spectrumBars[i].style.height = h + 'px';
+            }
+        }
+
+        function toggleBGM() {
+            initAudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (bgmPlaying) {
+                bgmAudio.pause();
+                bgmPlaying = false;
+                document.getElementById('bgmPlayBtn').textContent = '▶';
+            } else {
+                bgmAudio.play();
+                bgmPlaying = true;
+                document.getElementById('bgmPlayBtn').textContent = '⏸';
+            }
+        }
+
+        function switchBGM(index) {
+            bgmIndex = index;
+            const wasPlaying = bgmPlaying;
+            bgmAudio.src = BGM_LIST[index].src;
+            document.getElementById('bgmTrackName').textContent = BGM_LIST[index].name;
+            if (wasPlaying) {
+                bgmAudio.play();
+            }
+        }
+
         const TRACKS = [{
             id: 'stardust',
             title: '星尘麻醉剂',
@@ -1504,6 +1649,8 @@
             pulseGlitch();
         }
         startBtnEl.addEventListener('click', startGame);
+        document.getElementById('bgmPlayBtn').addEventListener('click', toggleBGM);
+        document.getElementById('bgmSelect').addEventListener('change', (e) => switchBGM(+e.target.value));
         puzzleConfirmEl.addEventListener('click', solvePuzzle);
         puzzleCancelEl.addEventListener('click', closePuzzle);
         puzzleInputEl.addEventListener('keydown', (e) => {
