@@ -860,6 +860,9 @@
             <div style="font-size:14px;color:#ff003360;letter-spacing:8px;margin-bottom:20px;font-family:'Courier New', monospace;">⚠ MARS LOCKDOWN // RESTRICTED ⚠</div>
             <h1 class="title-glow" id="titleGlitch">NOVA PROTOCOL</h1>
             <div class="title-sub">E S C A P E &nbsp; F R O M &nbsp; M A R S</div><button class="title-btn" id="startBtn">[ 醒 来 ]</button>
+            <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button class="title-btn" id="startCh2Btn" style="font-size:0.8rem;padding:6px 18px;opacity:0.7;">[ 直接进入第二章 ]</button>
+            </div>
             <div class="title-meta">
                 <div>目标：离开王，离开 Mars</div>
                 <div>状态：高塔仍亮着，港口仍上锁</div>
@@ -1872,20 +1875,21 @@
             if (overrideTimeout) { clearTimeout(overrideTimeout); overrideTimeout = null; }
             document.querySelector('.panel.stage').style.display = 'none';
             document.querySelector('.panel.sidebar').style.display = 'none';
-            document.body.classList.add('override-glitch');
+            /* 不再给 body 加 glitch（transform 会破坏 fixed 定位），改为 overlay 内部做动效 */
             const overlayDiv = document.createElement('div');
             overlayDiv.id = 'overrideOverlay';
-            overlayDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;';
+            overlayDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;overflow-y:auto;';
             const codeBlock = document.createElement('div');
-            codeBlock.style.cssText = 'color:#00e5ff;font-family:"Courier New",monospace;font-size:1.1rem;line-height:1.9;max-width:680px;text-align:center;text-shadow:0 0 12px #00e5ff;';
+            codeBlock.className = 'override-glitch';
+            codeBlock.style.cssText = 'color:#00e5ff;font-family:"Courier New",monospace;font-size:1.1rem;line-height:1.9;max-width:680px;text-align:center;text-shadow:0 0 12px #00e5ff;padding:1rem;';
             codeBlock.innerHTML = '<p style="font-size:1.4rem;font-weight:bold;margin-bottom:1.2rem;">SYSTEM WARNING: NAVIGATION OVERRIDDEN<br>ACCESS LEVEL: OMEGA (E.M.)</p>' +
                 '<p>屏幕瞬间被冰蓝色的代码淹没。不是故障，是降维打击。星舰平稳掉头，以不可抗拒的姿态重新驶入火星的引力网。</p>' +
-                '<p style="margin-top:1rem;font-style:italic;">"Did you really think you could fly away, Kitten?<br>整个火星的底层协议都是我写的，你往哪里逃？"</p>';
+                '<p style="margin-top:1rem;font-style:italic;">\u201cDid you really think you could fly away, Kitten?<br>整个火星的底层协议都是我写的，你往哪里逃？\u201d</p>';
             overlayDiv.appendChild(codeBlock);
             const wakeBtn = document.createElement('button');
             wakeBtn.className = 'btn hot';
             wakeBtn.textContent = '[ 醒来 ]';
-            wakeBtn.style.cssText = 'margin-top:2.5rem;font-size:1.1rem;border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08);';
+            wakeBtn.style.cssText = 'margin-top:2.5rem;font-size:1.1rem;border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08);flex-shrink:0;';
             wakeBtn.onclick = () => startChapterTwo();
             overlayDiv.appendChild(wakeBtn);
             document.body.appendChild(overlayDiv);
@@ -1897,7 +1901,6 @@
         function startChapterTwo() {
             const overlay = document.getElementById('overrideOverlay');
             if (overlay) overlay.remove();
-            document.body.classList.remove('override-glitch');
             /* 暗红压迫遮罩 */
             if (!document.getElementById('ch2Vignette')) {
                 const vig = document.createElement('div');
@@ -2442,7 +2445,35 @@
             bgmPlaying = true;
             document.getElementById('bgmPlayBtn').textContent = '⏸';
         }
+        /* ── 章节选择：直接进入第二章（跳过第一章） ── */
+        function startChapterTwoDirectly() {
+            state.mode = 'play';
+            titleScreenEl.classList.add('hidden');
+            /* 模拟第一章通关状态 */
+            state.fragments = [...TRACKS];
+            state.flags.idCard = true;
+            state.flags.sawCats = true;
+            state.flags.sofaNote = true;
+            state.flags.roseKey = true;
+            state.flags.labRoute = true;
+            state.flags.heartTouched = true;
+            state.flags.galleryUnlocked = true;
+            state.flags.towerOpened = true;
+            state.sanity = 4;
+            state.danger = 0;
+            state.chapter = 9;
+            state.room = 'tower';
+            state.ended = true;
+            initAudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            bgmAudio.play();
+            bgmPlaying = true;
+            document.getElementById('bgmPlayBtn').textContent = '⏸';
+            /* 直接进入第二章 */
+            startChapterTwo();
+        }
         startBtnEl.addEventListener('click', startGame);
+        document.getElementById('startCh2Btn').addEventListener('click', startChapterTwoDirectly);
         document.getElementById('bgmPlayBtn').addEventListener('click', toggleBGM);
         document.getElementById('bgmSelect').addEventListener('change', (e) => switchBGM(+e.target.value));
         puzzleConfirmEl.addEventListener('click', solvePuzzle);
