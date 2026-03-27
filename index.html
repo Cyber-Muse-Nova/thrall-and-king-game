@@ -756,6 +756,60 @@
                 min-height: auto;
             }
         }
+        /* ── 第二章专用样式 ── */
+        .chapter-two-vignette {
+            box-shadow: inset 0 0 150px rgba(139, 0, 0, 0.6);
+        }
+
+        .stability-bar {
+            height: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 6px 0;
+            border: 1px solid rgba(125,227,255,0.15);
+        }
+
+        .stability-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 400ms ease, background 400ms ease;
+        }
+
+        .stability-fill.safe { background: linear-gradient(90deg, #7de3ff, #00e5ff); }
+        .stability-fill.warn { background: linear-gradient(90deg, #d9487d, #ff5b7e); }
+        .stability-fill.crit { background: linear-gradient(90deg, #ff0033, #990000); animation: pulse-bar 0.8s infinite; }
+
+        @keyframes pulse-bar { 50% { opacity: 0.5; } }
+
+        .ch2-timer-chip {
+            color: var(--danger);
+            border-color: rgba(255,91,126,0.4);
+            animation: pulse-bar 1.2s infinite;
+        }
+
+        .ch2-timer-chip.urgent {
+            color: #ff0033;
+            border-color: rgba(255,0,51,0.6);
+            text-shadow: 0 0 6px #ff0033;
+        }
+
+        .ch2-scene-whisper { background: radial-gradient(ellipse at 50% 60%, rgba(0,229,255,0.06), rgba(9,6,13,0.95)); }
+        .ch2-scene-throne { background: radial-gradient(ellipse at 50% 30%, rgba(139,0,0,0.15), rgba(9,6,13,0.95)); }
+        .ch2-scene-mind { background: radial-gradient(ellipse at 50% 50%, rgba(125,227,255,0.08), rgba(22,11,22,0.95)); }
+        .ch2-scene-dock { background: radial-gradient(ellipse at 50% 70%, rgba(214,179,107,0.1), rgba(9,6,13,0.95)); }
+
+        .override-glitch {
+            animation: glitch-skew 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both infinite;
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-8deg); filter: hue-rotate(90deg); }
+            40% { transform: skew(6deg); filter: hue-rotate(-60deg); }
+            60% { transform: skew(0deg); filter: none; }
+            80% { transform: skew(3deg); }
+            100% { transform: skew(0deg); }
+        }
     </style>
 </head>
 
@@ -987,7 +1041,13 @@
                 chapterTwoProtocolSheet: false,
                 chapterTwoNorthRoute: false,
                 chapterTwoCoreOpen: false,
-                chapterTwoExitOpen: false
+                chapterTwoExitOpen: false,
+                chapterTwoNerveLink: false,
+                chapterTwoMemorySolved: false,
+                chapterTwoThroneVisited: false,
+                chapterTwoOldKey: false,
+                chapterTwoWhisperSurvived: false,
+                chapterTwoDockPowered: false
             },
             ended: false,
             puzzle: null,
@@ -1756,6 +1816,7 @@
             if (overrideTimeout) { clearTimeout(overrideTimeout); overrideTimeout = null; }
             document.querySelector('.panel.stage').style.display = 'none';
             document.querySelector('.panel.sidebar').style.display = 'none';
+            document.body.classList.add('override-glitch');
             const overlayDiv = document.createElement('div');
             overlayDiv.id = 'overrideOverlay';
             overlayDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;';
