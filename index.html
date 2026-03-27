@@ -773,20 +773,18 @@
       setTimeout(() => triggerJump(text), 320);
     }
 
-    // ── 打字机效果 ──
-    let typewriterTimer = null;
-    let typewriterTarget = null;
+    // ── 打字机效果（支持多个元素同时打字）──
+    const typewriterTimers = new Map();
 
     function typewrite(el, text, speed = 30, callback) {
-      // 清除之前的打字机动画
-      if (typewriterTimer) {
-        clearTimeout(typewriterTimer);
-        typewriterTimer = null;
+      // 清除该元素之前的打字机动画
+      if (typewriterTimers.has(el)) {
+        clearTimeout(typewriterTimers.get(el));
+        typewriterTimers.delete(el);
       }
 
       let i = 0;
       el.textContent = '';
-      typewriterTarget = { el, text, callback };
 
       // 添加光标
       const cursor = document.createElement('span');
@@ -798,21 +796,19 @@
           el.textContent = text.slice(0, i + 1);
           el.appendChild(cursor);
           i++;
-          typewriterTimer = setTimeout(tick, speed);
+          typewriterTimers.set(el, setTimeout(tick, speed));
         } else {
           el.textContent = text;
-          typewriterTimer = null;
-          typewriterTarget = null;
+          typewriterTimers.delete(el);
           if (callback) callback();
         }
       }
 
       // 点击跳过动画
       const skipHandler = () => {
-        if (typewriterTimer) {
-          clearTimeout(typewriterTimer);
-          typewriterTimer = null;
-          typewriterTarget = null;
+        if (typewriterTimers.has(el)) {
+          clearTimeout(typewriterTimers.get(el));
+          typewriterTimers.delete(el);
           el.textContent = text;
           if (callback) callback();
         }
