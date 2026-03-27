@@ -1719,6 +1719,8 @@
                 { key: 'ch2BearClue', label: '草莓熊芯片' },
                 { key: 'ch2MemoryChip', label: '记忆芯片' },
                 { key: 'ch2OverrideCode', label: '覆写密码' },
+                { key: 'ch2WhisperSurvived', label: '低语破绽' },
+                { key: 'ch2FleshShard', label: '系统核心碎片' },
                 { key: 'chapterTwoExitOpen', label: '出口已解锁' }
             ];
             trackChipsEl.innerHTML = '';
@@ -1925,6 +1927,9 @@
             state.flags.ch2ConsoleVisited = false;
             state.flags.ch2ThroneVisited = false;
             state.flags.ch2DataVaultVisited = false;
+            state.flags.ch2FleshShard = false;
+            state.flags.ch2WhisperSurvived = false;
+            state.flags.ch2ForgePassed = false;
             state.sanity = 2;
             state.danger = 2;
             state.chapter = 10;
@@ -2132,6 +2137,21 @@
                     }
                 },
                 {
+                    text: '向下：沿阶梯坠入低语深渊',
+                    action() {
+                        addLog('阶梯向下延伸，每一级都比上一级更窄。空气变得黏稠，你的耳膜开始嗡鸣，像有什么东西正在你脑子里筑巢。');
+                        renderChapterTwoWhisperVoidChoices();
+                    }
+                },
+                {
+                    text: '穿过热浪通道：进入血肉熔炉',
+                    require: () => state.flags.ch2WhisperSurvived || state.flags.ch2ThroneVisited,
+                    action() {
+                        addLog('通道尽头的温度骤升。空气灼热粘稠，墙壁由某种有机物构成，正在缓慢脉动。像走进了一具巨大身体的内部。');
+                        renderChapterTwoFleshForgeChoices();
+                    }
+                },
+                {
                     text: '前往控制台',
                     require: () => state.flags.chapterTwoCoreOpen,
                     action() {
@@ -2198,6 +2218,14 @@
                         bumpSanity(-1);
                         delayedJump('Mars 也在看你');
                         renderChapterTwoThroneRoomChoices();
+                    }
+                },
+                {
+                    text: '从椅子背后的暗门进入血肉熔炉',
+                    require: () => state.flags.ch2OverrideCode,
+                    action() {
+                        addLog('终端屏幕忽然闪了一下，椅子后方的墙壁无声裂开。里面涌出灼热气浪和甜腻的金属气味。\n\n这不是通道——这是他身体的延伸。');
+                        renderChapterTwoFleshForgeChoices();
                     }
                 },
                 {
@@ -2272,13 +2300,165 @@
             appendChapterTwoButtons(choices);
         }
 
+        /* ── 低语深渊：心理极限（Grok 设计） ── */
+        function renderChapterTwoWhisperVoidChoices() {
+            chapterTwoCurrentScene = 'whisperVoid';
+            roomNameEl.textContent = '第二关 · 低语深渊';
+            clearRoomArtForChapterTwo();
+            objectiveEl.textContent = '黑暗中只有他的声音。找到破绽，或者被永远吞没。';
+            choicesEl.innerHTML = '';
+            addLog('无尽黑暗。地面是柔软却冰冷的有机层，像活体皮肤般起伏。\n\n你的每一次呼吸都被放大成回声，而回声里夹杂着他的低语：\n\n「归来吧……永恒的王在等待你的臣服。」\n\n低语声从四面八方钻进耳膜。你的身体在这里变得过分敏感——温度、触觉、心跳，全都被剥去了保护层。');
+            const choices = [
+                {
+                    text: '闭眼倾听，在低语中寻找破绽',
+                    once: 'ch2listenVoid',
+                    action() {
+                        addLog('你强迫自己不去抵抗，而是顺着低语的节奏呼吸。\n\n很慢很慢地，你听见了——低语不是均匀的。每隔七次循环，有一个字会卡顿。\n\n拼出来是：\n\n「K - I - T - T - E - N」\n\n——这是密码。他把你的名字藏在了控制你的指令里。');
+                        state.flags.ch2WhisperSurvived = true;
+                        renderChapterTwoSidebar();
+                        renderChapterTwoWhisperVoidChoices();
+                    }
+                },
+                {
+                    text: '用发现的密码反击低语系统',
+                    require: () => state.flags.ch2WhisperSurvived,
+                    action() {
+                        openPuzzle({
+                            title: '反抗密码',
+                            text: '低语系统正在入侵你的意识。输入你从低语破绽中发现的密码来抵抗。',
+                            hint: '他把你的名字藏在了指令里……',
+                            answer: 'kitten',
+                            onSuccess() {
+                                addLog('——嘶啦——\n\n密码生效！低语像玻璃一样碎裂，黑暗中出现一条被撕开的光缝。\n\n你听见他在很远的地方说了一句：\n\n「……聪明。」\n\n不是愤怒。是欣赏。这让你更害怕了。');
+                                bumpSanity(1);
+                                renderChapterTwoWhisperVoidChoices();
+                            },
+                            onFail() {
+                                addLog('——错误。\n\n低语猛地变成尖啸，你的四肢开始不由自主地发软。黑暗里有什么东西正在靠近，温热的，带着他体温的。', { scary: true });
+                                bumpDanger(1);
+                                bumpSanity(-1);
+                                delayedJump('臣服');
+                            }
+                        });
+                    }
+                },
+                {
+                    text: '直接反抗——朝黑暗大喊',
+                    once: 'ch2screamVoid',
+                    action() {
+                        addLog('你的声音被瞬间吞没。回声消失的那一秒，空气凝固了。\n\n然后——幻觉。\n\n你感觉到无形的力量从脊椎向上攀爬，像冰冷的手指逐节按过去。你的身体被迫弯曲，膝盖撞到柔软的地面。\n\n「大声一点，Nova。我喜欢听你喊。」\n\n极端的屈辱感像电流穿过每一寸皮肤。', { scary: true });
+                        bumpSanity(-1);
+                        bumpDanger(1);
+                        delayedJump('大声一点');
+                        renderChapterTwoWhisperVoidChoices();
+                    }
+                },
+                {
+                    text: '沿着光缝爬向血肉熔炉',
+                    require: () => state.flags.ch2WhisperSurvived,
+                    action() {
+                        addLog('你顺着碎裂的低语墙壁攀爬，手指抓住灼热的边缘——\n\n光缝另一端是一片红色的蒸汽。温度骤升。你知道更深的地方在等你。');
+                        renderChapterTwoFleshForgeChoices();
+                    }
+                },
+                {
+                    text: '退回暗红走廊',
+                    action() {
+                        addLog('你拼命向上爬，指甲嵌进有机层的表面，终于重新摸到了走廊的金属地板。\n\n身后的深渊发出一声叹息。');
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                }
+            ];
+            appendChapterTwoButtons(choices);
+        }
+
+        /* ── 血肉熔炉：极限区域（Grok 设计） ── */
+        function renderChapterTwoFleshForgeChoices() {
+            chapterTwoCurrentScene = 'fleshForge';
+            roomNameEl.textContent = '第二关 · 血肉熔炉';
+            clearRoomArtForChapterTwo();
+            objectiveEl.textContent = '王的禁地。拿到碎片，或者被永远锻入他的系统。';
+            choicesEl.innerHTML = '';
+            addLog('空气灼热粘稠。墙壁由活体组织构成，脉动着吞吐热气。中央熔炉里翻滚着半成形的金属与血肉混合物。\n\n触手般的管道在空中缓慢舞动，像在等待猎物。\n\n熔炉上方悬浮着一枚发光的碎片——那是王的系统核心的一部分。你需要它来彻底覆写控制台。');
+            const choices = [
+                {
+                    text: '拼凑零件制造抓取装置（限时挑战）',
+                    require: () => !state.flags.ch2ForgePassed,
+                    action() {
+                        addLog('你在熔炉边找到三种材料：血肉碎片、金属芯、神经线。\n\n必须按正确顺序组装——你只有一次机会。\n\n管道的舞动越来越快。');
+                        choicesEl.innerHTML = '';
+                        const steps = ['金属芯（骨架）', '神经线（传导）', '血肉碎片（封装）'];
+                        const wrongSteps = ['血肉碎片（先封装？）', '神经线（先传导？）', '金属芯（先骨架？）'];
+                        const forgeChoices = [
+                            {
+                                text: '正确顺序：金属芯 → 神经线 → 血肉碎片',
+                                action() {
+                                    state.flags.ch2ForgePassed = true;
+                                    state.flags.ch2FleshShard = true;
+                                    addLog('——咔嗒——咔嗒——咔嗒——\n\n装置成型！抓取臂伸向熔炉上方，精准夹住那枚碎片。\n\n碎片落入你掌心的瞬间，整座熔炉发出低沉的哀鸣。\n\n你拿到了【系统核心碎片】—— 这是他最深处的一块骨头。有了它，控制台的最后一道锁将无法抵挡。');
+                                    renderChapterTwoSidebar();
+                                    renderChapterTwoFleshForgeChoices();
+                                }
+                            },
+                            {
+                                text: '错误顺序：血肉碎片 → 金属芯 → 神经线',
+                                action() {
+                                    addLog('——嘶啦——\n\n装置在你手中碎裂！灼热的碎片溅到你手臂上，留下蛛网般的灼痕。\n\n一根管道趁机卷住你的手腕——冰冷、湿滑，像蛇一样向上攀爬。\n\n你拼命甩开它，退后几步，喘着粗气。', { scary: true });
+                                    bumpSanity(-1);
+                                    bumpDanger(1);
+                                    delayedJump('反噬');
+                                    renderChapterTwoFleshForgeChoices();
+                                }
+                            }
+                        ];
+                        appendChapterTwoButtons(forgeChoices);
+                    }
+                },
+                {
+                    text: '躲避管道，潜行到熔炉底部',
+                    once: 'ch2sneakForge',
+                    action() {
+                        addLog('你贴着地面匍匐前进。一根管道从你头顶划过，带着呼吸般的节律。\n\n在熔炉底部，你发现了一块残破的铭文板：\n\n「FORGE PROTOCOL v1.0 — 作者：E.M.」\n「备注：如果她走到这里，说明她比我预期的更强。」\n「备注2：也更危险。」\n\n你不知道"危险"指的是对他，还是对你自己。');
+                        renderChapterTwoFleshForgeChoices();
+                    }
+                },
+                {
+                    text: '将手伸入熔炉，直接触碰核心',
+                    once: 'ch2touchForge',
+                    action() {
+                        addLog('——灼——\n\n火焰瞬间舔上你的手指。痛楚如潮水涌来，视野变红。\n\n在极端的疼痛边缘，你看见了一个画面：他坐在王座上，手里握着一个和你一模一样的人偶，正在小心翼翼地修补它的裂缝。\n\n幻觉消散。你的手还在，但上面多了一道疤——和他手上的那道一模一样。', { scary: true });
+                        bumpSanity(-1);
+                        bumpDanger(1);
+                        delayedJump('同步');
+                        renderChapterTwoFleshForgeChoices();
+                    }
+                },
+                {
+                    text: '带着碎片返回暗红走廊',
+                    require: () => state.flags.ch2FleshShard,
+                    action() {
+                        addLog('你攥紧碎片，头也不回地冲出熔炉。身后的管道在你离开的瞬间全部垂落，像失去了猎物的触须。\n\n走廊的空气从未如此清凉。');
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                },
+                {
+                    text: '退回暗红走廊（放弃碎片）',
+                    require: () => !state.flags.ch2FleshShard,
+                    action() {
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                }
+            ];
+            appendChapterTwoButtons(choices);
+        }
+
         /* ── 控制台：终局 ── */
         function renderChapterTwoConsoleChoices() {
             chapterTwoCurrentScene = 'console';
             roomNameEl.textContent = '第二关 · 主控制台';
             clearRoomArtForChapterTwo();
             const hasAllBase = state.flags.chapterTwoProtocolSheet && state.flags.chapterTwoVoiceprint && state.flags.chapterTwoCoreOpen && state.flags.chapterTwoNorthRoute;
-            const hasExtra = state.flags.ch2MemoryChip || state.flags.ch2OverrideCode;
+            const hasExtra = state.flags.ch2MemoryChip || state.flags.ch2OverrideCode || state.flags.ch2FleshShard;
             objectiveEl.textContent = hasAllBase && hasExtra ? '所有条件已满足。执行覆写。' : '收集全部条件后才能执行覆写。你可能还需要更深层的访问凭证。';
             choicesEl.innerHTML = '';
             if (!state.flags.ch2ConsoleVisited) {
@@ -2291,7 +2471,9 @@
                     require: () => !state.flags.chapterTwoExitOpen && hasAllBase && hasExtra,
                     action() {
                         state.flags.chapterTwoExitOpen = true;
-                        const method = state.flags.ch2OverrideCode
+                        const method = state.flags.ch2FleshShard
+                            ? '系统核心碎片插入主槽——他的骨头反噬了他自己的身体。熔炉里锻造的东西，最终碎裂了锻造者。'
+                            : state.flags.ch2OverrideCode
                             ? '覆写密码注入底层——他写的规则正在被他自己的代码击穿。'
                             : '记忆芯片数据涌入系统——你用他保存的"你"覆盖了他定义的"你"。';
                         addLog('控制台逐层验证：\n\nVOICE SAMPLE ......... ACCEPTED\nNORTH ROUTE .......... REMAPPED\nMANUAL KEY ........... ACCEPTED\nOVERRIDE CREDENTIAL .. ACCEPTED\n\n' + method + '\n\n——轰——\n\n你听见很远的地方传来门锁松开的声音。不止一扇。是所有的门。');
@@ -2304,7 +2486,7 @@
                     text: '输入基础协议（缺少关键凭证）',
                     require: () => !state.flags.chapterTwoExitOpen && hasAllBase && !hasExtra,
                     action() {
-                        addLog('系统接受了前三项输入，但最后一道锁没有松开。\n\n屏幕提示：\n\n「INSUFFICIENT OVERRIDE AUTHORITY」\n「需要更深层的访问凭证：记忆芯片 或 覆写密码」\n\n数据穹顶和他的起居室里也许还有答案。');
+                        addLog('系统接受了前三项输入，但最后一道锁没有松开。\n\n屏幕提示：\n\n「INSUFFICIENT OVERRIDE AUTHORITY」\n「需要更深层的访问凭证：记忆芯片 / 覆写密码 / 系统核心碎片」\n\n数据穹顶、起居室或血肉熔炉里也许还有答案。');
                         renderChapterTwoConsoleChoices();
                     }
                 },
@@ -2375,7 +2557,8 @@
             chapterEl.textContent = state.chapter >= 10 ? ('Ⅱ - ' + ({
                 wake:'？？？', bedroom:'玻璃房', darkCorridor:'暗红走廊',
                 reactorHall:'反应堆走廊', throneRoom:'起居室',
-                dataVault:'数据穹顶', console:'控制台'
+                dataVault:'数据穹顶', whisperVoid:'低语深渊',
+                fleshForge:'血肉熔炉', console:'控制台'
             }[chapterTwoCurrentScene] || '？？？')) : chapterRoman(state.chapter);
             if (state.flags.chapterTwoStarted) {
                 renderChapterTwoSidebar();
