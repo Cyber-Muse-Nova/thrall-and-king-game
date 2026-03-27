@@ -280,6 +280,25 @@
     .room-desc, .log {
       cursor: pointer;
     }
+    /* ── 关键词高亮 ── */
+    .hl-item { color: #d6b36b; text-shadow: 0 0 6px rgba(214,179,107,0.25); }
+    .hl-dialog { color: #7de3ff; }
+    .hl-lyric { color: #ff88bb; font-style: italic; }
+    .hl-song { color: #d6b36b; font-style: italic; }
+    .hl-sfx { color: #9a7aad; letter-spacing: 1.5px; font-size: 0.92em; }
+    /* ── 恐怖抖动 ── */
+    .log-scary {
+      animation: textShake 0.12s infinite;
+      border-color: rgba(255,0,51,0.35) !important;
+      box-shadow: 0 0 18px rgba(255,0,51,0.08) inset;
+    }
+    @keyframes textShake {
+      0%  { transform: translate(0.6px, 0); }
+      25% { transform: translate(-0.4px, 0.5px); }
+      50% { transform: translate(0.5px, -0.6px); }
+      75% { transform: translate(-0.6px, 0.3px); }
+      100%{ transform: translate(0.4px, -0.3px); }
+    }
     @media (max-width: 900px) {
       #app { grid-template-columns: 1fr; }
       .stage, .sidebar { min-height: auto; }
@@ -421,7 +440,7 @@
           {
             text: '读墙上的抓痕字迹',
             action() {
-              addLog('霜雾后的金属墙上只有一句话：\n\n「如果你终于醒了，就不要再回头。」\n\n像是你自己留给自己的。');
+              addLog('——沙沙——\n\n霜雾后的金属墙上只有一句话：\n\n「如果你终于醒了，就不要再回头。」\n\n像是你自己留给自己的。', { scary: true });
               bumpSanity(-1);
               delayedJump('不要再回头');
             },
@@ -443,7 +462,7 @@
           {
             text: '查看失灵显示屏',
             action() {
-              addLog('屏幕忽明忽暗，最后停在一行白字上：\n\n「火星欢迎留下来的人。」\n\n下一秒，整排屏幕同时黑掉，只剩你自己的倒影。');
+              addLog('——嗡——\n\n屏幕忽明忽暗，最后停在一行白字上：\n\n「火星欢迎留下来的人。」\n\n...嘶啦... 整排屏幕同时黑掉，只剩你自己的倒影。', { scary: true });
               bumpDanger(1);
               delayedJump('留下来');
             },
@@ -475,7 +494,7 @@
           {
             text: '触碰悬浮水晶球',
             action() {
-              addLog('三只猫同时抬头看你。顶部喇叭里响起一道低沉男声：\n\n「它们一直很好。你只要留下，就什么都不会失去。」\n\n你后退半步，心里只剩更强烈的逃离欲。');
+              addLog('三只猫同时抬头看你。\n\n♪ ...喇叭里响起低沉男声... ♪\n\n「它们一直很好。你只要留下，就什么都不会失去。」\n\n你后退半步，心里只剩更强烈的逃离欲。', { scary: true });
               state.flags.sawCats = true;
               delayedJump('它们一直很好');
             },
@@ -498,12 +517,12 @@
                 hint: '前八次是命运，第几次是选择？',
                 answer: '0009',
                 onSuccess() {
-                  addLog('锁盒弹开。里面躺着一把薄而冷的玫瑰钥匙，像一朵被冻结的花。你拿起它，知道画廊终于能开了。');
+                  addLog('...咔嗒——\n\n锁盒弹开。里面躺着一把薄而冷的玫瑰钥匙，像一朵被冻结的花。你拿起它，知道画廊终于能开了。');
                   state.flags.roseKey = true;
                   state.flags.galleryUnlocked = true;
                 },
                 onFail() {
-                  addLog('密码错误。锁盒发出刺耳蜂鸣，天花板红灯亮了一瞬。');
+                  addLog('——哔——\n\n密码错误。锁盒发出刺耳蜂鸣，天花板红灯亮了一瞬。', { scary: true });
                   bumpDanger(1);
                   delayedJump('0009');
                 }
@@ -531,7 +550,7 @@
           {
             text: '触碰心核装置',
             action() {
-              addLog('装置表面的金属一阵发烫。屏幕跳出一句冷到像亲吻一样的话：\n\n「别跑。Mars 为你亮着。」\n\n你猛地甩开手，胸口像被谁捏了一下。');
+              addLog('...咚...咚... 装置表面的金属一阵发烫。屏幕跳出一句冷到像亲吻一样的话：\n\n「别跑。Mars 为你亮着。」\n\n...咚...咚... 你猛地甩开手，胸口像被谁捏了一下。', { scary: true });
               state.flags.heartTouched = true;
               bumpSanity(-1);
               delayedJump('别跑');
@@ -565,7 +584,7 @@
           {
             text: '打开肖像前的封存柜',
             action() {
-              addLog('封存柜里静静躺着一朵水晶玫瑰。你拿起它时，花瓣像在微微发热。柜底同时亮起一句语录。');
+              addLog('...咔嗒...\n\n封存柜里静静躺着一朵【水晶玫瑰】。你拿起它时，花瓣像在微微发热。柜底同时亮起一句语录。');
               gainFragment('rose');
             },
             once: 'rose'
@@ -593,7 +612,7 @@
           {
             text: '开启药剂冷藏抽屉',
             action() {
-              addLog('冷藏抽屉缓缓弹开，一支星尘麻醉剂在蓝白霜雾中滚到你指尖。它美得像宇宙尘埃，也危险得像留人用的温柔。');
+              addLog('...嘶——\n\n冷藏抽屉缓缓弹开，一支【星尘麻醉剂】在蓝白霜雾中滚到你指尖。它美得像宇宙尘埃，也危险得像留人用的温柔。');
               gainFragment('stardust');
               bumpSanity(-1);
             },
@@ -602,7 +621,7 @@
           {
             text: '改写北侧停机坪坐标',
             action() {
-              addLog('你把路线悄悄写向北侧停机坪，系统却回传一行细字：\n\n「I know where you run before you run.」\n\n警戒随之升高。');
+              addLog('——嗒嗒嗒—— 你把路线悄悄写向北侧停机坪，系统却回传一行细字：\n\n「I know where you run before you run.」\n\n警戒随之升高。', { scary: true });
               bumpDanger(1);
             },
             once: 'northport'
@@ -620,7 +639,7 @@
           {
             text: '从根系培养槽里取出芯片',
             action() {
-              addLog('你拨开缠绕的透明根丝，拿出一枚变量芯片。它表面闪过一段语录，冷得像亲眼看着爱燃尽。');
+              addLog('你拨开缠绕的透明根丝，拿出一枚【变量芯片】。它表面闪过一段语录，冷得像亲眼看着爱燃尽。');
               gainFragment('chip');
             },
             once: 'chip'
@@ -628,7 +647,7 @@
           {
             text: '砸开东侧玻璃试图直接逃走',
             action() {
-              addLog('裂纹像血一样扩散开，可玻璃外面还有第二层穹顶。警报猛地亮起，整座温室都在提醒你：火星不是那么容易离开的。');
+              addLog('——嘭——\n\n裂纹像血一样扩散开，可玻璃外面还有第二层穹顶。\n\n——呜呜呜—— 警报猛地亮起，整座温室都在提醒你：火星不是那么容易离开的。', { scary: true });
               bumpDanger(2);
               bumpSanity(-1);
               delayedJump('跑不掉');
@@ -648,7 +667,7 @@
           {
             text: '将【水晶玫瑰】送入第一锁环',
             action() {
-              addLog('玫瑰在锁环里慢慢亮起。第一道光像爱本身，也像牢笼最柔软的那部分。');
+              addLog('...叮—— 【水晶玫瑰】在锁环里慢慢亮起。第一道光像爱本身，也像牢笼最柔软的那部分。');
             },
             require() { return hasFragment('rose'); },
             once: 'lock1'
@@ -656,7 +675,7 @@
           {
             text: '将【星尘麻醉剂】送入第二锁环',
             action() {
-              addLog('麻醉剂被心核抽空，第二道锁环泛起星尘一样的雾光。你知道这座帝国曾经多么擅长让人失去离开的力气。');
+              addLog('...叮—— 【星尘麻醉剂】被心核抽空，第二道锁环泛起星尘一样的雾光。你知道这座帝国曾经多么擅长让人失去离开的力气。');
             },
             require() { return hasFragment('stardust') && used('lock1'); },
             once: 'lock2'
@@ -664,7 +683,7 @@
           {
             text: '将【变量芯片】送入第三锁环',
             action() {
-              addLog('芯片嵌入核心，第三道锁环随之彻底点燃。升降台苏醒，发射塔控制厅的权限被强制重新打开。');
+              addLog('...叮—— 【变量芯片】嵌入核心，第三道锁环随之彻底点燃。\n\n——轰—— 升降台苏醒，发射塔控制厅的权限被强制重新打开。');
               state.flags.towerOpened = true;
             },
             require() { return hasFragment('chip') && used('lock2'); },
@@ -673,7 +692,7 @@
           {
             text: '强行越权点火',
             action() {
-              addLog('系统立刻判定你为入侵者。高塔红灯全亮，安保开始收束。');
+              addLog('——哔哔哔—— 系统立刻判定你为入侵者。高塔红灯全亮，安保开始收束。', { scary: true });
               bumpDanger(2);
               delayedJump('权限不足');
             },
@@ -773,6 +792,24 @@
       setTimeout(() => triggerJump(text), 320);
     }
 
+    // ── 关键词高亮（将纯文本转为 HTML）──
+    function richText(text) {
+      let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      html = html
+        .replace(/【([^】]+)】/g, '<span class="hl-item">【$1】</span>')
+        .replace(/《([^》]+)》/g, '<span class="hl-song">《$1》</span>')
+        .replace(/「([^」]+)」/g, '<span class="hl-dialog">「$1」</span>')
+        .replace(/"([^""]+)"/g, '<span class="hl-lyric">"$1"</span>')
+        .replace(/♪/g, '<span class="hl-sfx">♪</span>')
+        .replace(/(\.\.\.[\S ]{1,12}\.\.\.)/g, '<span class="hl-sfx">$1</span>')
+        .replace(/(——[\S ]{1,16}——)/g, '<span class="hl-sfx">$1</span>')
+        .replace(/\n/g, '<br>');
+      return html;
+    }
+
     // ── 打字机效果（支持多个元素同时打字）──
     const typewriterTimers = new Map();
 
@@ -791,6 +828,12 @@
       cursor.className = 'typewriter-cursor';
       cursor.textContent = '▊';
 
+      function finish() {
+        el.innerHTML = richText(text);
+        typewriterTimers.delete(el);
+        if (callback) callback();
+      }
+
       function tick() {
         if (i < text.length) {
           el.textContent = text.slice(0, i + 1);
@@ -798,9 +841,7 @@
           i++;
           typewriterTimers.set(el, setTimeout(tick, speed));
         } else {
-          el.textContent = text;
-          typewriterTimers.delete(el);
-          if (callback) callback();
+          finish();
         }
       }
 
@@ -808,9 +849,7 @@
       const skipHandler = () => {
         if (typewriterTimers.has(el)) {
           clearTimeout(typewriterTimers.get(el));
-          typewriterTimers.delete(el);
-          el.textContent = text;
-          if (callback) callback();
+          finish();
         }
         el.removeEventListener('click', skipHandler);
       };
@@ -824,8 +863,12 @@
     function allFragments() { return state.fragments.length === TRACKS.length; }
     function chapterRoman(n) { return ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ'][n - 1] || 'Ⅰ'; }
 
-    function addLog(text, glitch = false) {
+    function addLog(text, { glitch = false, scary = false } = {}) {
       const displayText = glitch ? corruptText(text, 0.025) : text;
+      if (scary) {
+        logEl.classList.add('log-scary');
+        setTimeout(() => logEl.classList.remove('log-scary'), 2200);
+      }
       typewrite(logEl, displayText, 25, () => {
         if (state.danger >= 5 && !state.ended) endGame('caught');
         if (state.sanity <= 0 && !state.ended) endGame('glass');
@@ -848,7 +891,7 @@
       const track = TRACKS.find(t => t.id === id);
       if (!track || hasFragment(id)) return;
       state.fragments.push(track);
-      typewrite(logEl, `你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n”${track.fragment}”`, 20);
+      typewrite(logEl, `...叮——\n\n你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n”${track.fragment}”`, 20);
       renderSidebar();
     }
 
@@ -948,9 +991,11 @@
         chip.textContent = hasFragment(track.id) ? `${track.title} · ${track.keyWord}` : `${track.title} · 未拾取`;
         trackChipsEl.appendChild(chip);
       });
-      lyricBoxEl.textContent = state.fragments.length
-        ? state.fragments.map(x => `【${x.title}】— ${x.song}\n${x.fragment}`).join('\n\n')
-        : '还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。';
+      if (state.fragments.length) {
+        lyricBoxEl.innerHTML = richText(state.fragments.map(x => `【${x.title}】—《${x.song}》\n"${x.fragment}"`).join('\n\n'));
+      } else {
+        lyricBoxEl.textContent = '还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。';
+      }
     }
 
     function render() {
