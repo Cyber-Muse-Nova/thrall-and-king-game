@@ -261,7 +261,8 @@
         }
         .spectrum-wrap .bar {
             flex: 1;
-            background: linear-gradient(0deg, var(--accent), var(--gold));
+            background: linear-gradient(0deg, #ff4da6, #ff88cc);
+            box-shadow: 0 0 4px rgba(255, 77, 166, 0.5);
             border-radius: 2px 2px 0 0;
             min-width: 3px;
             transition: height 80ms ease;
@@ -795,12 +796,12 @@
                 <h3>BGM</h3>
                 <div class="bgm-player">
                     <button id="bgmPlayBtn" title="播放/暂停">▶</button>
-                    <span class="bgm-track-name" id="bgmTrackName">飙车bgm</span>
+                    <span class="bgm-track-name" id="bgmTrackName">默认bgm</span>
                     <select id="bgmSelect">
-                        <option value="0">飙车bgm</option>
+                        <option value="0">默认bgm</option>
                         <option value="1">Cage of Stars</option>
-                        <option value="2">Cage of Black Hole</option>
-                        <option value="3">Heat Death</option>
+                        <option value="2">Property of Elon Musk</option>
+                        <option value="3">The Variable in Ruins</option>
                     </select>
                 </div>
                 <div class="spectrum-wrap" id="spectrum"></div>
@@ -849,10 +850,10 @@
 
         /* ── BGM 系统 ── */
         const BGM_LIST = [
-            { name: '飙车bgm', src: '飙车bgm 2.mp3' },
+            { name: '默认bgm', src: '飙车bgm 2.mp3' },
             { name: 'Cage of Stars', src: 'cage-of-stars.mp3' },
-            { name: 'Cage of Black Hole', src: 'cage-of-black-hole 2.mp3' },
-            { name: 'Heat Death', src: 'heat-death.mp3' }
+            { name: 'Property of Elon Musk', src: 'cage-of-black-hole 2.mp3' },
+            { name: 'The Variable in Ruins', src: 'heat-death.mp3' }
         ];
         const bgmAudio = new Audio(BGM_LIST[0].src);
         bgmAudio.loop = true;
@@ -1647,6 +1648,11 @@
             state.chapter = 1;
             render();
             pulseGlitch();
+            initAudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            bgmAudio.play();
+            bgmPlaying = true;
+            document.getElementById('bgmPlayBtn').textContent = '⏸';
         }
         startBtnEl.addEventListener('click', startGame);
         document.getElementById('bgmPlayBtn').addEventListener('click', toggleBGM);
