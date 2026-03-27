@@ -810,6 +810,45 @@
             80% { transform: skew(3deg); }
             100% { transform: skew(0deg); }
         }
+
+        /* ── 伪结局绿色文字 ── */
+        .false-dawn-text {
+            color: #00ff00 !important;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px #00ff00, 0 0 30px #00ff00;
+            transition: opacity 2s ease-in;
+        }
+
+        /* ── 第二章暗红压迫边框（固定遮罩层，不阻挡点击） ── */
+        #ch2Vignette {
+            position: fixed; inset: 0; z-index: 998;
+            pointer-events: none;
+            box-shadow: inset 0 0 150px rgba(139, 0, 0, 0.8);
+            transition: box-shadow 1.5s;
+        }
+
+        /* ── 第二章按钮冰蓝高光 ── */
+        .btn.chapter-two-btn {
+            border-color: rgba(0, 229, 255, 0.25);
+        }
+        .btn.chapter-two-btn:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 14px rgba(0, 229, 255, 0.18);
+        }
+
+        /* ── 稳定度条 ── */
+        .stability-bar-wrap {
+            margin-top: 0.7rem; background: rgba(255,255,255,0.08);
+            border-radius: 4px; height: 10px; overflow: hidden;
+        }
+        .stability-bar-fill {
+            height: 100%; border-radius: 4px; transition: width 0.5s;
+            background: linear-gradient(90deg, #d9487d, #ff5b7e);
+        }
+        .stability-label {
+            font-size: 0.72rem; color: var(--muted);
+            margin-top: 0.25rem; text-align: center;
+        }
     </style>
 </head>
 
@@ -1668,28 +1707,43 @@
         }
 
         function renderChapterTwoSidebar() {
-            const chips = [];
-            if (state.flags.chapterTwoReactorKey) chips.push('反应堆钥匙');
-            if (state.flags.chapterTwoVoiceprint) chips.push('声纹样本');
-            if (state.flags.chapterTwoProtocolSheet) chips.push('协议纸页');
-            if (state.flags.chapterTwoNorthRoute) chips.push('北侧航线');
-            if (state.flags.chapterTwoCoreOpen) chips.push('核心已开启');
-            if (state.flags.chapterTwoExitOpen) chips.push('出口已解锁');
+            const items = [
+                { key: 'chapterTwoVoiceprint', label: '声纹样本' },
+                { key: 'chapterTwoNorthRoute', label: '北侧航线' },
+                { key: 'chapterTwoProtocolSheet', label: '协议纸页' },
+                { key: 'chapterTwoReactorKey', label: '反应堆钥匙' },
+                { key: 'chapterTwoCoreOpen', label: '核心已开启' },
+                { key: 'ch2BearClue', label: '草莓熊芯片' },
+                { key: 'ch2MemoryChip', label: '记忆芯片' },
+                { key: 'ch2OverrideCode', label: '覆写密码' },
+                { key: 'chapterTwoExitOpen', label: '出口已解锁' }
+            ];
             trackChipsEl.innerHTML = '';
-            if (chips.length) {
-                chips.forEach(name => {
-                    const chip = document.createElement('div');
-                    chip.className = 'chip chapter-two-active';
-                    chip.textContent = name;
-                    trackChipsEl.appendChild(chip);
-                });
-            } else {
+            items.forEach(item => {
                 const chip = document.createElement('div');
-                chip.className = 'chip';
-                chip.textContent = '第二关线索 · 未取得';
+                chip.className = 'chip' + (state.flags[item.key] ? ' active' : '');
+                chip.textContent = state.flags[item.key] ? `${item.label} · 已获取` : `${item.label} · ???`;
                 trackChipsEl.appendChild(chip);
+            });
+            /* 稳定度条 */
+            const barWrap = document.createElement('div');
+            barWrap.className = 'stability-bar-wrap';
+            const fill = document.createElement('div');
+            fill.className = 'stability-bar-fill';
+            fill.style.width = Math.min(100, (state.danger / 5) * 100) + '%';
+            barWrap.appendChild(fill);
+            trackChipsEl.appendChild(barWrap);
+            const barLabel = document.createElement('div');
+            barLabel.className = 'stability-label';
+            barLabel.textContent = `稳定度：${Math.max(0, 5 - state.danger)} / 5`;
+            trackChipsEl.appendChild(barLabel);
+            /* 线索汇总 */
+            const collected = items.filter(i => state.flags[i.key]);
+            if (collected.length) {
+                lyricBoxEl.innerHTML = richText('【第二关线索】\n' + collected.map(i => `· ${i.label}`).join('\n'));
+            } else {
+                lyricBoxEl.textContent = '还没有找到任何线索。他的规则正在你周围成形。';
             }
-            lyricBoxEl.innerHTML = richText('第二关开始后，这里不再显示遗物歌词。<br>你需要收集的是：<br>【反应堆钥匙】、【声纹样本】、【协议纸页】、【北侧航线】。');
         }
 
         function endGame(kind) {
@@ -1734,8 +1788,8 @@
                 chapterTwoEscape: {
                     room: 'tower',
                     title: '第二关真结局 · 穿透覆写',
-                    text: '你把反应堆钥匙插入控制槽，声纹样本通过校验，协议纸页上的旧版本指令终于覆盖了他强加的新规则。北侧航线亮起，整层玻璃房第一次真正出现了出口。\n\n这一次，你不是从第一关逃出去。你是从他亲手写下的第二层笼子里撕开了一道缝。',
-                    objective: '你已经完成第二关。现在可以继续往更深处写第三关了。'
+                    text: '控制台的所有屏幕同时变白。旧协议覆盖了他强加的新规则，整层玻璃房的墙壁第一次真正变得透明。\n\n你看见了外面——不是火星的红土，是一条很长的、通向停机坪的走廊。走廊尽头有光。\n\n你跑了起来。\n\n身后，数据穹顶里你的全息影像全部熄灭。他的起居室里，那把椅子缓缓转了半圈，面向空无一人的落地窗。\n\n这一次，你不是从第一关逃出去。你是从他亲手写下的第二层笼子里，用他自己的代码，撕开了一道他也许早就留好的缝。\n\n——但你不敢想这个"也许"。你只是跑。',
+                    objective: '你撕开了第二层。但 Mars 还有多少层？'
                 }
             };
             const ending = endings[kind];
@@ -1764,6 +1818,8 @@
             if (kind === 'chapterTwoEscape' || kind === 'sedated') {
                 clearChapterTwoTimer();
                 clearRoomArtForChapterTwo();
+                const vig = document.getElementById('ch2Vignette');
+                if (vig) vig.remove();
                 roomNameEl.textContent = ending.title;
                 roomVisualEl.className = 'room-visual room-lab';
                 objectiveEl.textContent = ending.objective;
@@ -1841,6 +1897,13 @@
         function startChapterTwo() {
             const overlay = document.getElementById('overrideOverlay');
             if (overlay) overlay.remove();
+            document.body.classList.remove('override-glitch');
+            /* 暗红压迫遮罩 */
+            if (!document.getElementById('ch2Vignette')) {
+                const vig = document.createElement('div');
+                vig.id = 'ch2Vignette';
+                document.body.appendChild(vig);
+            }
             document.querySelector('.panel.stage').style.display = '';
             document.querySelector('.panel.sidebar').style.display = '';
             state.ended = false;
@@ -1851,6 +1914,14 @@
             state.flags.chapterTwoNorthRoute = false;
             state.flags.chapterTwoCoreOpen = false;
             state.flags.chapterTwoExitOpen = false;
+            state.flags.ch2MirrorSeen = false;
+            state.flags.ch2CatGhost = false;
+            state.flags.ch2MemoryChip = false;
+            state.flags.ch2OverrideCode = false;
+            state.flags.ch2BearClue = false;
+            state.flags.ch2ConsoleVisited = false;
+            state.flags.ch2ThroneVisited = false;
+            state.flags.ch2DataVaultVisited = false;
             state.sanity = 2;
             state.danger = 2;
             state.chapter = 10;
@@ -1898,8 +1969,9 @@
         }
 
         function renderChapterTwoBedroomChoices() {
+            chapterTwoCurrentScene = 'bedroom';
             roomNameEl.textContent = '第二关 · 玻璃房';
-            objectiveEl.textContent = '从玻璃房拿到第一批线索，然后想办法进入反应堆层。';
+            objectiveEl.textContent = '搜刮线索，找到离开这间绝对曝光的房间的方法。';
             choicesEl.innerHTML = '';
             const choices = [
                 {
@@ -1917,24 +1989,45 @@
                     require: () => !state.flags.chapterTwoVoiceprint,
                     action() {
                         state.flags.chapterTwoVoiceprint = true;
-                        addLog('玻璃后的采集器被你的声音惊醒。几秒后，屏幕自动生成一段伪造的声纹样本。\n\n你忽然明白：第二关不需要真正的自由，它只要求输入一段“像你”的声音。');
+                        addLog('玻璃后的采集器被你的声音惊醒。几秒后，屏幕自动生成一段伪造的声纹样本。\n\n你忽然明白：第二关不需要真正的自由，它只要求输入一段”像你”的声音。');
                         renderChapterTwoSidebar();
                         renderChapterTwoBedroomChoices();
                     }
                 },
                 {
-                    text: '顺着北侧维护提示，进入反应堆走廊',
+                    text: '凝视单向玻璃墙上自己的倒影',
+                    require: () => !state.flags.ch2MirrorSeen,
+                    action() {
+                        state.flags.ch2MirrorSeen = true;
+                        addLog('你走近玻璃，看见自己苍白的脸。倒影里，你身后有一个模糊的轮廓——\n\n你猛地回头。\n\n空无一人。但倒影里那个轮廓还在微笑。', { scary: true });
+                        bumpSanity(-1);
+                        delayedJump('他一直在看');
+                        renderChapterTwoBedroomChoices();
+                    }
+                },
+                {
+                    text: '翻看草莓熊里是否藏有东西',
+                    require: () => !state.flags.ch2BearClue,
+                    action() {
+                        state.flags.ch2BearClue = true;
+                        addLog('你小心翼翼地翻开草莓熊背后的拉链。里面塞着一片薄薄的透明芯片，上面刻着极小的字：\n\n「DATA VAULT ACCESS // SUBLEVEL -2 // 我把你的梦存在最深处」\n\n你不确定这是威胁还是邀请。');
+                        renderChapterTwoSidebar();
+                        renderChapterTwoBedroomChoices();
+                    }
+                },
+                {
+                    text: '顺着北侧维护提示，进入暗红走廊',
                     require: () => state.flags.chapterTwoNorthRoute,
                     action() {
-                        chapterTwoCurrentScene = 'reactorHall';
-                        renderChapterTwoReactorHallChoices();
+                        renderChapterTwoDarkCorridorChoices();
                     }
                 },
                 {
                     text: '撬开脚踝环的磁扣，强行冲门',
                     action() {
-                        addLog('金属磁扣在你皮肤上弹出一串电火花。你冲到门前，可玻璃外层立刻落下一道新的权限幕墙。\n\n他似乎早就料到你会这样做。', { scary: true });
+                        addLog('金属磁扣在你皮肤上弹出一串电火花。你冲到门前，可玻璃外层立刻落下一道新的权限幕墙。\n\n——嗤——\n\n扬声器里传来他低沉的笑声。不是嘲讽，像是欣赏一只笼中鸟扑翅的样子。', { scary: true });
                         bumpDanger(1);
+                        delayedJump('别挣扎');
                         renderChapterTwoBedroomChoices();
                     }
                 }
@@ -1943,6 +2036,7 @@
         }
 
         function renderChapterTwoReactorHallChoices() {
+            chapterTwoCurrentScene = 'reactorHall';
             roomNameEl.textContent = '第二关 · 反应堆走廊';
             objectiveEl.textContent = '找到反应堆钥匙，让旧协议真正有执行条件。';
             clearRoomArtForChapterTwo();
@@ -1969,17 +2063,81 @@
                     }
                 },
                 {
-                    text: '前往控制台，组合旧协议',
-                    require: () => state.flags.chapterTwoProtocolSheet && state.flags.chapterTwoVoiceprint && state.flags.chapterTwoCoreOpen && state.flags.chapterTwoNorthRoute,
+                    text: '检查走廊尽头的通风管道',
+                    once: 'ch2vent',
                     action() {
-                        chapterTwoCurrentScene = 'console';
+                        addLog('你把耳朵贴到通风管壁上。里面传来极轻的白噪音，和一段被压缩的语音回放：\n\n「……如果她找到了钥匙……就把走廊B区的温度降两度……她怕冷……」\n\n你松开手。他的控制精确到你皮肤上的温度。', { scary: true });
+                        bumpSanity(-1);
+                        renderChapterTwoReactorHallChoices();
+                    }
+                },
+                {
+                    text: '前往控制台',
+                    require: () => state.flags.chapterTwoCoreOpen,
+                    action() {
                         renderChapterTwoConsoleChoices();
                     }
                 },
                 {
-                    text: '退回玻璃房，再确认手头线索',
+                    text: '返回暗红走廊',
                     action() {
-                        chapterTwoCurrentScene = 'bedroom';
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                }
+            ];
+            appendChapterTwoButtons(choices);
+        }
+
+        /* ── 暗红走廊：枢纽场景 ── */
+        function renderChapterTwoDarkCorridorChoices() {
+            chapterTwoCurrentScene = 'darkCorridor';
+            roomNameEl.textContent = '第二关 · 暗红走廊';
+            clearRoomArtForChapterTwo();
+            objectiveEl.textContent = '走廊分三岔：左边是反应堆，右边是数据穹顶，尽头是一扇不应该打开的门。';
+            choicesEl.innerHTML = '';
+            addLog('走廊比第一章的更窄、更暗。两侧墙壁像会呼吸一样微微起伏，暗红色的灯带以心跳频率闪烁。\n\n你经过一面碎裂的镜子时——三只猫的全息影像突然出现在你脚边。\n\n它们无声地看着你，像来自第一章的残影。');
+            const choices = [
+                {
+                    text: '蹲下来触碰猫的全息影像',
+                    require: () => !state.flags.ch2CatGhost,
+                    action() {
+                        state.flags.ch2CatGhost = true;
+                        addLog('你的指尖穿过它们的身体。三只猫同时抬头，嘴巴张开，却发出的是他的声音：\n\n「你以前也这样蹲下来过。」\n\n「在猫房。」\n\n「在我给你造的猫房里。」\n\n全息影像碎裂成光点，飘向走廊深处。', { scary: true });
+                        bumpSanity(-1);
+                        delayedJump('猫房');
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                },
+                {
+                    text: '向左：进入反应堆走廊',
+                    action() {
+                        renderChapterTwoReactorHallChoices();
+                    }
+                },
+                {
+                    text: '向右：进入数据穹顶',
+                    require: () => state.flags.ch2BearClue,
+                    action() {
+                        renderChapterTwoDataVaultChoices();
+                    }
+                },
+                {
+                    text: '走到尽头：推开那扇不该打开的门',
+                    action() {
+                        addLog('门把手是冰的。你用力一推——\n\n门后面是一个你从未见过的空间。极简、极暗、极安静。像谁的心脏最里面那层。');
+                        renderChapterTwoThroneRoomChoices();
+                    }
+                },
+                {
+                    text: '前往控制台',
+                    require: () => state.flags.chapterTwoCoreOpen,
+                    action() {
+                        renderChapterTwoConsoleChoices();
+                    }
+                },
+                {
+                    text: '回到玻璃房',
+                    action() {
                         renderChapterTwoBedroomChoices();
                     }
                 }
@@ -1987,57 +2145,217 @@
             appendChapterTwoButtons(choices);
         }
 
-        function renderChapterTwoConsoleChoices() {
-            roomNameEl.textContent = '第二关 · 控制台';
-            objectiveEl.textContent = '把你拿到的四个条件按正确顺序写进系统。';
+        /* ── 王的起居室：高风险高回报 ── */
+        function renderChapterTwoThroneRoomChoices() {
+            chapterTwoCurrentScene = 'throneRoom';
+            roomNameEl.textContent = '第二关 · 王的起居室';
             clearRoomArtForChapterTwo();
+            objectiveEl.textContent = '你闯入了他的私人领地。每多待一秒，风险就多一分。';
             choicesEl.innerHTML = '';
+            if (!state.flags.ch2ThroneVisited) {
+                state.flags.ch2ThroneVisited = true;
+                addLog('房间中央是一把黑色的椅子，面向一面巨型落地窗。窗外是火星夜景的全息投影——或者说，是真实的火星。\n\n桌上散落着手写笔记、一杯凉透的咖啡，和一个未关闭的终端屏幕。屏幕上的光标还在闪。\n\n他刚刚还在这里。');
+            }
             const choices = [
                 {
-                    text: '输入：声纹认证 → 北侧航线 → 手动反应堆钥匙',
-                    require: () => !state.flags.chapterTwoExitOpen,
+                    text: '读取终端上未关闭的页面',
+                    require: () => !state.flags.ch2OverrideCode,
                     action() {
-                        state.flags.chapterTwoExitOpen = true;
-                        addLog('控制台先是沉默，随后一层层吐出久违的白色确认框：\n\nVOICE SAMPLE ACCEPTED\nNORTH ROUTE REMAPPED\nMANUAL KEY ACCEPTED\n\n你听见很远的地方传来门锁松开的声音。第二关终于第一次出现了真正的出口。');
-                        renderChapterTwoSidebar();
-                        renderChapterTwoConsoleChoices();
-                    }
-                },
-                {
-                    text: '输入错误顺序，试探系统底层反应',
-                    require: () => !state.flags.chapterTwoExitOpen,
-                    action() {
-                        addLog('顺序刚错，屏幕最下方立刻跳出一行红字：\n\n「你还是没学会按我的方式来。」\n\n你背后一冷，通风口里有脚步声靠近。', { scary: true });
+                        state.flags.ch2OverrideCode = true;
+                        addLog('终端上是一段未完成的代码：\n\nOVERRIDE_KEY: 0x4E4F5641\nCOMMENT: // 如果她真的走到这一步\nCOMMENT: // 就让她看见最后的密码\nCOMMENT: // 但别让她知道，这也是我写好的剧本\n\n你把覆写密码刻进记忆里。手在发抖。');
                         bumpDanger(1);
-                        renderChapterTwoConsoleChoices();
+                        renderChapterTwoSidebar();
+                        renderChapterTwoThroneRoomChoices();
                     }
                 },
                 {
-                    text: '沿着已经解锁的门，离开第二关',
-                    require: () => state.flags.chapterTwoExitOpen,
+                    text: '翻阅桌上的手写笔记',
+                    once: 'ch2notes',
                     action() {
-                        endGame('chapterTwoEscape');
+                        addLog('笔迹锋利、克制。你翻到最后一页：\n\n「Day 1: 她醒了。\nDay 1: 她试图离开。\nDay 1: 意料之中。\nDay 1: ……但心率比预期快了 0.3。」\n\n「我不应该注意到这个。」\n\n最后一行被狠狠划掉了，但你还是读出来了。', { scary: true });
+                        bumpSanity(-1);
+                        renderChapterTwoThroneRoomChoices();
                     }
                 },
                 {
-                    text: '在门开之前停下来，等待他找到你',
+                    text: '坐进那把黑色椅子',
+                    once: 'ch2chair',
                     action() {
-                        endGame('sedated');
+                        addLog('你坐下的瞬间，椅子自动调整到了你的体型。\n\n——它记得你。\n\n屏幕弹出一行字：「欢迎回来，Nova。」\n\n你像被烫到一样弹起来。椅子上还残留着温度——不是你的。', { scary: true });
+                        delayedJump('欢迎回来');
+                        bumpDanger(1);
+                        renderChapterTwoThroneRoomChoices();
+                    }
+                },
+                {
+                    text: '查看落地窗后的火星夜景',
+                    once: 'ch2window',
+                    action() {
+                        addLog('你走到窗前。火星的沙暴在极远处翻涌，像一场红色的海啸。\n\n玻璃上忽然浮现一行凝结的水雾字：\n\n「你在看 Mars，Mars 也在看你。」\n\n你低头——地板反射出的不是你的脸，是他的。只有一瞬间。');
+                        bumpSanity(-1);
+                        delayedJump('Mars 也在看你');
+                        renderChapterTwoThroneRoomChoices();
+                    }
+                },
+                {
+                    text: '迅速离开，回到暗红走廊',
+                    action() {
+                        addLog('你退出房间时，门在身后缓缓合上。走廊灯光比刚才暗了一度。\n\n你确定自己听到了里面传来椅子转动的声音。');
+                        renderChapterTwoDarkCorridorChoices();
                     }
                 }
             ];
             appendChapterTwoButtons(choices);
         }
 
+        /* ── 数据穹顶：记忆深渊 ── */
+        function renderChapterTwoDataVaultChoices() {
+            chapterTwoCurrentScene = 'dataVault';
+            roomNameEl.textContent = '第二关 · 数据穹顶';
+            clearRoomArtForChapterTwo();
+            objectiveEl.textContent = '这里存放着你被遗忘的数据。取走记忆芯片，但代价是看见自己不想看见的东西。';
+            choicesEl.innerHTML = '';
+            if (!state.flags.ch2DataVaultVisited) {
+                state.flags.ch2DataVaultVisited = true;
+                addLog('穹顶很高，像一座倒扣的星空。四周是无数悬浮的数据晶柱，每一根里都封存着一段影像。\n\n你看见了自己——\n\n在猫房里笑着的自己。在温室里哭着的自己。在他怀里沉默的自己。\n\n所有版本的你，都在这里被完好地保存着。');
+            }
+            const choices = [
+                {
+                    text: '取出标记为 NOVA-CORE 的记忆芯片',
+                    require: () => !state.flags.ch2MemoryChip,
+                    action() {
+                        state.flags.ch2MemoryChip = true;
+                        addLog('晶柱裂开。芯片落入你的手心，冰凉如骨。\n\n屏幕上立刻弹出你从未见过的数据：\n\n「NOVA 情绪模型 v7.2 — 逃离冲动强度：98.7%」\n「建议处理：不处理。让她跑。」\n「备注：她跑的样子最像活着。」\n\n...你忽然不确定自己为什么在发抖了。');
+                        renderChapterTwoSidebar();
+                        renderChapterTwoDataVaultChoices();
+                    }
+                },
+                {
+                    text: '播放标记为"最后一次"的影像记录',
+                    once: 'ch2lastnight',
+                    action() {
+                        addLog('——嗡——\n\n全息投影亮起。是你离开前最后一个夜晚。\n\n他站在你身后，你站在窗前。火星的日落把两个人的影子叠在一起。你说：「我要走了。」\n\n他没回头。只说了一句：\n\n「我知道。」\n\n影像结束。穹顶所有的灯同时熄了一秒。', { scary: true });
+                        bumpSanity(-1);
+                        delayedJump('我知道');
+                        renderChapterTwoDataVaultChoices();
+                    }
+                },
+                {
+                    text: '尝试删除自己的全部数据',
+                    once: 'ch2delete',
+                    action() {
+                        addLog('——哔哔哔——\n\n「DELETE ALL: DENIED」\n「REASON: DATA OWNER IS NOT YOU.」\n「DATA OWNER: E.M.」\n\n你的数据从来就不属于你。在这颗星球上，甚至你的记忆都是他的财产。', { scary: true });
+                        bumpDanger(1);
+                        delayedJump('DENIED');
+                        renderChapterTwoDataVaultChoices();
+                    }
+                },
+                {
+                    text: '触碰"在他怀里沉默的自己"那根晶柱',
+                    once: 'ch2silentself',
+                    action() {
+                        addLog('晶柱亮起。你看见全息影像里的自己靠在他肩上，眼睛是闭着的。\n\n他的手搭在你的后脑勺上，嘴唇贴着你的发顶，反复说着什么。\n\n你凑近去听。\n\n「Stay.\n\nStay.\n\nStay.」\n\n一个词。说了三十七遍。你数过了。', { scary: true });
+                        bumpSanity(-1);
+                        renderChapterTwoDataVaultChoices();
+                    }
+                },
+                {
+                    text: '离开数据穹顶，回到暗红走廊',
+                    action() {
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                }
+            ];
+            appendChapterTwoButtons(choices);
+        }
+
+        /* ── 控制台：终局 ── */
+        function renderChapterTwoConsoleChoices() {
+            chapterTwoCurrentScene = 'console';
+            roomNameEl.textContent = '第二关 · 主控制台';
+            clearRoomArtForChapterTwo();
+            const hasAllBase = state.flags.chapterTwoProtocolSheet && state.flags.chapterTwoVoiceprint && state.flags.chapterTwoCoreOpen && state.flags.chapterTwoNorthRoute;
+            const hasExtra = state.flags.ch2MemoryChip || state.flags.ch2OverrideCode;
+            objectiveEl.textContent = hasAllBase && hasExtra ? '所有条件已满足。执行覆写。' : '收集全部条件后才能执行覆写。你可能还需要更深层的访问凭证。';
+            choicesEl.innerHTML = '';
+            if (!state.flags.ch2ConsoleVisited) {
+                state.flags.ch2ConsoleVisited = true;
+                addLog('控制台比第一章的更庞大，屏幕从地板延伸到天花板。所有接口都在等待输入。\n\n但正中央的主屏幕上，有一行他留下的字：\n\n「你每靠近一步，我就退后一步。但这座迷宫是圆的，Nova。你绕回来的时候，会发现我一直在终点等你。」');
+            }
+            const choices = [
+                {
+                    text: '执行覆写：声纹 → 航线 → 钥匙 → 注入凭证',
+                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase && hasExtra,
+                    action() {
+                        state.flags.chapterTwoExitOpen = true;
+                        const method = state.flags.ch2OverrideCode
+                            ? '覆写密码注入底层——他写的规则正在被他自己的代码击穿。'
+                            : '记忆芯片数据涌入系统——你用他保存的"你"覆盖了他定义的"你"。';
+                        addLog('控制台逐层验证：\n\nVOICE SAMPLE ......... ACCEPTED\nNORTH ROUTE .......... REMAPPED\nMANUAL KEY ........... ACCEPTED\nOVERRIDE CREDENTIAL .. ACCEPTED\n\n' + method + '\n\n——轰——\n\n你听见很远的地方传来门锁松开的声音。不止一扇。是所有的门。');
+                        pulseGlitch();
+                        renderChapterTwoSidebar();
+                        renderChapterTwoConsoleChoices();
+                    }
+                },
+                {
+                    text: '输入基础协议（缺少关键凭证）',
+                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase && !hasExtra,
+                    action() {
+                        addLog('系统接受了前三项输入，但最后一道锁没有松开。\n\n屏幕提示：\n\n「INSUFFICIENT OVERRIDE AUTHORITY」\n「需要更深层的访问凭证：记忆芯片 或 覆写密码」\n\n数据穹顶和他的起居室里也许还有答案。');
+                        renderChapterTwoConsoleChoices();
+                    }
+                },
+                {
+                    text: '输入错误顺序，试探系统底层反应',
+                    once: 'ch2wrongOrder',
+                    require: () => !state.flags.chapterTwoExitOpen,
+                    action() {
+                        addLog('顺序刚错，屏幕最下方立刻跳出一行红字：\n\n「你还是没学会按我的方式来。」\n\n通风口的白雾开始变浓。镇静剂的甜味隐约可闻。', { scary: true });
+                        bumpDanger(1);
+                        delayedJump('按我的方式来');
+                        renderChapterTwoConsoleChoices();
+                    }
+                },
+                {
+                    text: '沿着解锁的通道，离开第二关',
+                    require: () => state.flags.chapterTwoExitOpen,
+                    action() {
+                        endGame('chapterTwoEscape');
+                    }
+                },
+                {
+                    text: '在控制台前停下来，等待他找到你',
+                    action() {
+                        addLog('你把手从键盘上拿开。你不动了。\n\n很快，通风口的白雾变得更浓。你的眼皮开始发沉。\n\n最后听见的，是他靠近时衣料摩擦的声音。很轻。像在刻意不吵醒你。', { scary: true });
+                        endGame('sedated');
+                    }
+                },
+                {
+                    text: '返回暗红走廊',
+                    require: () => !state.flags.chapterTwoExitOpen,
+                    action() {
+                        renderChapterTwoDarkCorridorChoices();
+                    }
+                }
+            ];
+            appendChapterTwoButtons(choices);
+        }
+
+        /* ── 第二章通用按钮渲染 ── */
         function appendChapterTwoButtons(choices) {
             choicesEl.innerHTML = '';
             choices.forEach(choice => {
                 if (choice.require && !choice.require()) return;
+                if (choice.once && usedActions.has(choice.once)) return;
                 const btn = document.createElement('button');
                 btn.className = 'btn chapter-two-btn';
-                if (/错误|冲门|停下来|找到你/.test(choice.text)) btn.className += ' danger';
+                if (/错误|冲门|停下来|找到你|删除|强行|坐进/.test(choice.text)) btn.className += ' danger';
                 btn.textContent = choice.text;
-                btn.onclick = choice.action;
+                btn.onclick = () => {
+                    if (state.ended) return;
+                    if (choice.once) usedActions.add(choice.once);
+                    choice.action();
+                };
                 choicesEl.appendChild(btn);
             });
         }
@@ -2051,7 +2369,11 @@
             sanityEl.textContent = state.sanity;
             dangerEl.textContent = state.danger;
             fragmentCountEl.textContent = `${state.fragments.length}/${TRACKS.length}`;
-            chapterEl.textContent = state.chapter >= 10 ? `Ⅱ - ${chapterTwoCurrentScene === 'wake' ? '玻璃房' : chapterTwoCurrentScene === 'reactorHall' ? '反应堆走廊' : chapterTwoCurrentScene === 'console' ? '控制台' : '玻璃房'}` : chapterRoman(state.chapter);
+            chapterEl.textContent = state.chapter >= 10 ? ('Ⅱ - ' + ({
+                wake:'？？？', bedroom:'玻璃房', darkCorridor:'暗红走廊',
+                reactorHall:'反应堆走廊', throneRoom:'起居室',
+                dataVault:'数据穹顶', console:'控制台'
+            }[chapterTwoCurrentScene] || '？？？')) : chapterRoman(state.chapter);
             if (state.flags.chapterTwoStarted) {
                 renderChapterTwoSidebar();
                 const timerInfo = document.createElement('div');
