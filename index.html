@@ -1,65 +1,1807 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thrall &amp; King · Escape from Mars</title>
-  <meta name="description" content="A dark fairy-tale horror escape game about Nova fleeing the King and Mars." />
-  <style>
-    :root { --bg:#09060d; --bg2:#160b16; --ink:#f4dff0; --muted:#b693b0; --accent:#d9487d; --gold:#d6b36b; --danger:#ff5b7e; --cyan:#7de3ff; --line:rgba(255,255,255,0.12); --shadow:0 0 30px rgba(217,72,125,0.20);} *{box-sizing:border-box;} html,body{margin:0;min-height:100%;background:radial-gradient(circle at 20% 15%, rgba(217,72,125,0.18), transparent 24%),radial-gradient(circle at 80% 10%, rgba(214,179,107,0.08), transparent 20%),linear-gradient(180deg,var(--bg2),var(--bg));color:var(--ink);font-family:"Noto Serif SC","Songti SC","SimSun",serif;overflow-x:hidden;} body{display:flex;justify-content:center;padding:20px;} #app{width:min(1160px,100%);display:grid;grid-template-columns:1.15fr 0.85fr;gap:18px;transition:filter 180ms ease;} #app.flicker{filter:brightness(1.18) contrast(1.12);} .panel{background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(10px);} .stage{padding:18px;min-height:76vh;display:flex;flex-direction:column;} .sidebar{padding:18px;min-height:76vh;} .title{margin:0;font-size:clamp(28px,4vw,46px);line-height:1;letter-spacing:1px;color:#ffe9f5;text-shadow:0 0 18px rgba(217,72,125,0.30);} .subtitle{margin:10px 0 16px;color:var(--muted);font-size:14px;line-height:1.6;} .room-card{position:relative;border:1px solid var(--line);border-radius:18px;min-height:340px;overflow:hidden;background:radial-gradient(circle at 50% 30%, rgba(255,255,255,0.03), transparent 40%), rgba(0,0,0,0.24);} .room-visual{min-height:340px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover;background-position:center;position:relative;} .room-visual::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.38));pointer-events:none;} .room-visual>*{position:relative;z-index:1;} .room-name{font-size:32px;margin:0 0 8px;} .room-desc{margin:0;max-width:62ch;color:#f7dde9;line-height:1.72;white-space:pre-wrap;} .hl-item{color:#d6b36b;text-shadow:0 0 6px rgba(214,179,107,0.25);} .hl-dialog{color:#7de3ff;} .hl-lyric{color:#ff88bb;font-style:italic;} .hl-song{color:#d6b36b;font-style:italic;} .hl-sfx{color:#9a7aad;letter-spacing:1.5px;font-size:.92em;} .log-scary{animation:textShake .12s infinite;border-color:rgba(255,0,51,0.35)!important;box-shadow:0 0 18px rgba(255,0,51,0.08) inset;} @keyframes textShake{0%{transform:translate(.6px,0);}25%{transform:translate(-.4px,.5px);}50%{transform:translate(.5px,-.6px);}75%{transform:translate(-.6px,.3px);}100%{transform:translate(.4px,-.3px);}} #dangerFlash{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;transition:opacity .15s ease;background:radial-gradient(circle at 50% 50%, rgba(180,0,0,.7), rgba(60,0,0,.85));display:flex;align-items:center;justify-content:center;} #dangerFlash.active{opacity:1;animation:dangerPulse .8s ease-out forwards;} #dangerFlash .danger-text{font-size:clamp(32px,6vw,64px);color:#ff1a1a;text-shadow:0 0 30px rgba(255,0,0,.9),0 0 60px rgba(255,0,0,.5);font-weight:bold;letter-spacing:8px;animation:textShake .1s infinite;} @keyframes dangerPulse{0%{opacity:1;}70%{opacity:.9;}100%{opacity:0;}} .bgm-player{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3);margin-bottom:12px;font-size:12px;color:var(--muted);} .bgm-player button{appearance:none;border:none;background:none;color:var(--accent);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;} .bgm-track-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:12px;} .bgm-player select{appearance:none;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:11px;padding:3px 6px;border-radius:6px;cursor:pointer;max-width:110px;} .spectrum-wrap{height:32px;display:flex;align-items:flex-end;gap:2px;margin-bottom:10px;padding:0 2px;} .spectrum-wrap .bar{flex:1;background:linear-gradient(0deg,#ff4da6,#ff88cc);box-shadow:0 0 4px rgba(255,77,166,.5);border-radius:2px 2px 0 0;min-width:3px;transition:height 80ms ease;} .choices{display:grid;gap:10px;margin-top:18px;} .btn{appearance:none;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));color:var(--ink);padding:12px 14px;border-radius:14px;text-align:left;cursor:pointer;transition:160ms ease;font:inherit;} .btn:hover{transform:translateY(-1px);border-color:rgba(217,72,125,.55);box-shadow:0 0 0 1px rgba(217,72,125,.16) inset;} .btn:disabled{opacity:.5;cursor:default;transform:none;} .hot{border-color:rgba(214,179,107,.45);} .danger{border-color:rgba(255,91,126,.52);} .log{margin-top:16px;padding:14px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.24);line-height:1.8;white-space:pre-wrap;min-height:176px;position:relative;overflow:hidden;} .log::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, transparent, rgba(255,255,255,.015));pointer-events:none;} .section{margin-bottom:16px;} .section h3{margin:0 0 10px;font-size:15px;color:#ffdced;letter-spacing:.4px;} .chips{display:flex;flex-wrap:wrap;gap:8px;} .chip{border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);padding:7px 10px;font-size:13px;} .chip.active{color:#fff6dc;border-color:rgba(214,179,107,.5);background:rgba(214,179,107,.12);} .status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;} .status{padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);} .status .label{color:var(--muted);font-size:12px;margin-bottom:6px;} .status .value{font-size:22px;} .small{font-size:12px;color:var(--muted);line-height:1.68;} .lyric-box{padding:12px;border-radius:14px;border:1px dashed rgba(214,179,107,.35);background:rgba(214,179,107,.06);color:#ffecc6;line-height:1.75;min-height:124px;white-space:pre-wrap;} .ending{border-left:3px solid var(--gold);padding-left:12px;color:#ffecc6;} .footer-note{margin-top:auto;padding-top:12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);line-height:1.6;} .timer{font-size:13px;color:var(--danger);animation:pulseSoft 1s infinite;} @keyframes pulseSoft{50%{opacity:.4;}} .meter{height:8px;background:#111;border-radius:999px;overflow:hidden;margin-top:8px;} .meter-fill{height:100%;background:linear-gradient(90deg,#7de3ff,#d9487d);transition:width 260ms ease;} .room-start{background-image:linear-gradient(180deg, rgba(12,24,44,.10), rgba(0,0,0,.62)), linear-gradient(120deg, #0b1222, #080b15 55%, #1a0d17);} .room-corridor{background-image:linear-gradient(180deg, rgba(29,10,35,.18), rgba(0,0,0,.62)), linear-gradient(120deg, #1a0718, #0b0912 52%, #190a1d);} .room-cat{background-image:linear-gradient(180deg, rgba(44,18,25,.12), rgba(0,0,0,.55)), linear-gradient(120deg, #1f0f17, #120915 48%, #26131b);} .room-lab{background-image:radial-gradient(circle at 55% 45%, rgba(255,102,178,.12), transparent 28%), linear-gradient(180deg, rgba(22,10,23,.12), rgba(0,0,0,.68)), linear-gradient(120deg, #160711, #09070d 48%, #160918);} .room-gallery{background-image:linear-gradient(180deg, rgba(29,15,26,.15), rgba(0,0,0,.6)), linear-gradient(120deg, #250e19, #110810 50%, #1c0b13);} .room-observatory{background-image:radial-gradient(circle at 50% 15%, rgba(214,179,107,.15), transparent 25%), linear-gradient(180deg, rgba(28,16,34,.2), rgba(7,5,10,.8)), linear-gradient(120deg, #2b0f1c, #130915 45%, #12081b 70%, #221019);} .room-greenhouse{background-image:linear-gradient(180deg, rgba(17,30,18,.12), rgba(0,0,0,.52)), linear-gradient(120deg, #142215, #0c1110 48%, #1a1116);} .room-reactor{background-image:radial-gradient(circle at 50% 50%, rgba(217,72,125,.12), transparent 30%), linear-gradient(180deg, rgba(31,10,21,.08), rgba(0,0,0,.7)), linear-gradient(120deg, #180812, #09070d 45%, #1b0b13);} .room-tower{background-image:radial-gradient(circle at 50% 28%, rgba(214,179,107,.16), transparent 24%), linear-gradient(180deg, rgba(30,12,20,.12), rgba(0,0,0,.68)), linear-gradient(120deg, #210b16, #0c070d 54%, #13080c);} .room-throne{background-image:radial-gradient(circle at 50% 30%, rgba(214,179,107,.12), transparent 28%), linear-gradient(120deg,#14040c,#09050a 48%,#23080f);} .room-forge{background-image:radial-gradient(circle at 50% 45%, rgba(255,91,126,.18), transparent 24%), linear-gradient(120deg,#22060d,#0d0508 48%,#2b090d);} .room-void{background-image:radial-gradient(circle at 50% 50%, rgba(125,227,255,.10), transparent 20%), linear-gradient(120deg,#060611,#040409 50%,#12051a);} .room-vault{background-image:radial-gradient(circle at 50% 40%, rgba(125,227,255,.12), transparent 20%), linear-gradient(120deg,#0b0d16,#06070e 48%,#140717);} #titleScreen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%, #1a0020 0%, #000 72%);overflow:hidden;} #titleScreen.hidden{display:none;} .scanline{position:absolute;left:0;right:0;top:-10%;height:2px;background:rgba(255,0,100,.28);animation:scanline 4s linear infinite;pointer-events:none;} .title-glow{font-size:clamp(42px,8vw,82px);color:#ff0066;text-shadow:0 0 30px #ff006640,0 0 60px #ff006620,-2px 0 #00ffff30,2px 0 #ff000030;letter-spacing:6px;font-family:'Courier New',monospace;font-weight:bold;margin:0;} .title-sub{font-size:13px;color:#ff006680;letter-spacing:4px;margin-top:8px;margin-bottom:42px;font-family:'Courier New',monospace;} .title-btn{padding:16px 50px;background:transparent;border:1px solid #ff0066;color:#ff0066;font-family:'Courier New',monospace;font-size:16px;cursor:pointer;letter-spacing:4px;transition:all .3s;} .title-btn:hover{background:#ff006620;box-shadow:0 0 30px #ff006640;} .title-meta{margin-top:56px;font-size:11px;color:#444;line-height:1.8;font-family:'Courier New',monospace;text-align:center;} .title-noise{position:absolute;inset:0;opacity:.05;pointer-events:none;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:3px 3px;mix-blend-mode:screen;} .title-ghost{position:absolute;bottom:12%;right:10%;color:rgba(255,255,255,.06);font-family:'Courier New',monospace;letter-spacing:2px;animation:pulseSoft 3.2s infinite;} #jumpScare{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,.96);color:#ff0033;font-family:'Courier New',monospace;text-shadow:0 0 18px #ff0033;} #jumpScare.active{display:flex;animation:flashBg .42s steps(2) 3;} #jumpText{font-size:clamp(34px,8vw,96px);letter-spacing:4px;animation:textShake .08s infinite;white-space:pre-wrap;text-align:center;padding:20px;} #jumpNoise{color:rgba(255,255,255,.2);font-size:12px;letter-spacing:3px;} #glitchOverlay{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:repeating-linear-gradient(180deg, rgba(255,255,255,.018), rgba(255,255,255,.018) 1px, transparent 1px, transparent 3px);transition:opacity 120ms ease;} #glitchOverlay.show{opacity:1;} #puzzleModal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.84);} #puzzleModal.active{display:flex;} .modal-card{background:rgba(9,6,13,.95);border:1px solid rgba(217,72,125,.45);border-radius:18px;width:min(420px,92vw);padding:24px;box-shadow:0 0 40px rgba(217,72,125,.18);} .modal-title{margin:0 0 10px;color:#ffe9f5;font-size:22px;} .modal-text{color:var(--muted);line-height:1.7;margin-bottom:12px;white-space:pre-wrap;} .modal-hint{color:#ffd0e1;background:rgba(217,72,125,.08);border:1px dashed rgba(217,72,125,.28);padding:10px 12px;border-radius:12px;margin-bottom:14px;white-space:pre-wrap;} .modal-input{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;padding:12px 14px;font:inherit;outline:none;} .modal-actions{display:flex;gap:10px;margin-top:14px;} @keyframes scanline{0%{top:-5%;}100%{top:105%;}} @keyframes flashBg{0%,100%{background:rgba(0,0,0,.96);}50%{background:rgba(120,0,12,.98);}} @keyframes blinkCursor{0%,50%{opacity:1;}51%,100%{opacity:0;}} .typewriter-cursor{display:inline;color:var(--accent);animation:blinkCursor .8s infinite;font-weight:bold;} .room-desc,.log{cursor:pointer;} @media (max-width:900px){#app{grid-template-columns:1fr;}.stage,.sidebar{min-height:auto;}}
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thrall &amp; King · Escape from Mars</title>
+    <meta name="description" content="A dark fairy-tale horror escape game about Nova fleeing the King and Mars." />
+    <style>
+        :root {
+            --bg: #09060d;
+            --bg2: #160b16;
+            --ink: #f4dff0;
+            --muted: #b693b0;
+            --accent: #d9487d;
+            --gold: #d6b36b;
+            --danger: #ff5b7e;
+            --cyan: #7de3ff;
+            --line: rgba(255, 255, 255, 0.12);
+            --shadow: 0 0 30px rgba(217, 72, 125, 0.20);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: radial-gradient(circle at 20% 15%, rgba(217, 72, 125, 0.18), transparent 24%), radial-gradient(circle at 80% 10%, rgba(214, 179, 107, 0.08), transparent 20%), linear-gradient(180deg, var(--bg2), var(--bg));
+            color: var(--ink);
+            font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #app {
+            width: min(1120px, 100%);
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            transition: filter 180ms ease;
+        }
+
+        #app.flicker {
+            filter: brightness(1.18) contrast(1.12);
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .stage {
+            padding: 18px;
+            min-height: 76vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            padding: 18px;
+            min-height: 76vh;
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 46px);
+            line-height: 1;
+            letter-spacing: 1px;
+            color: #ffe9f5;
+            text-shadow: 0 0 18px rgba(217, 72, 125, 0.30);
+        }
+
+        .subtitle {
+            margin: 10px 0 16px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .room-card {
+            position: relative;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            min-height: 300px;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.03), transparent 40%), rgba(0, 0, 0, 0.24);
+        }
+
+        .room-visual {
+            min-height: 300px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .room-visual::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.25));
+            pointer-events: none;
+        }
+
+        .room-visual>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .room-name {
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .room-desc {
+            margin: 0;
+            max-width: 62ch;
+            color: #f7dde9;
+            line-height: 1.72;
+            white-space: pre-wrap;
+        }
+
+        /* ── 关键词高亮 ── */
+        .hl-item {
+            color: #d6b36b;
+            text-shadow: 0 0 6px rgba(214, 179, 107, 0.25);
+        }
+
+        .hl-dialog {
+            color: #7de3ff;
+        }
+
+        .hl-lyric {
+            color: #ff88bb;
+            font-style: italic;
+        }
+
+        .hl-song {
+            color: #d6b36b;
+            font-style: italic;
+        }
+
+        .hl-sfx {
+            color: #9a7aad;
+            letter-spacing: 1.5px;
+            font-size: 0.92em;
+        }
+
+        /* ── 恐怖抖动 ── */
+        .log-scary {
+            animation: textShake 0.12s infinite;
+            border-color: rgba(255, 0, 51, 0.35) !important;
+            box-shadow: 0 0 18px rgba(255, 0, 51, 0.08) inset;
+        }
+
+        @keyframes textShake {
+            0% { transform: translate(0.6px, 0); }
+            25% { transform: translate(-0.4px, 0.5px); }
+            50% { transform: translate(0.5px, -0.6px); }
+            75% { transform: translate(-0.6px, 0.3px); }
+            100% { transform: translate(0.4px, -0.3px); }
+        }
+
+        /* ── 王的监听警告 ── */
+        #dangerFlash {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            background: radial-gradient(circle at 50% 50%, rgba(180, 0, 0, 0.7), rgba(60, 0, 0, 0.85));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #dangerFlash.active {
+            opacity: 1;
+            animation: dangerPulse 0.8s ease-out forwards;
+        }
+        #dangerFlash .danger-text {
+            font-size: clamp(32px, 6vw, 64px);
+            color: #ff1a1a;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.9), 0 0 60px rgba(255, 0, 0, 0.5);
+            font-weight: bold;
+            letter-spacing: 8px;
+            animation: textShake 0.1s infinite;
+        }
+        @keyframes dangerPulse {
+            0% { opacity: 1; }
+            70% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+
+        /* ── BGM 播放器 ── */
+        .bgm-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .bgm-player button {
+            appearance: none;
+            border: none;
+            background: none;
+            color: var(--accent);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .bgm-player button:hover { color: #ff88bb; }
+        .bgm-track-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--ink);
+            font-size: 12px;
+        }
+        .bgm-player select {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+            color: var(--ink);
+            font: inherit;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            max-width: 110px;
+        }
+        /* ── 频谱 ── */
+        .spectrum-wrap {
+            height: 32px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            margin-bottom: 10px;
+            padding: 0 2px;
+        }
+        .spectrum-wrap .bar {
+            flex: 1;
+            background: linear-gradient(0deg, #ff4da6, #ff88cc);
+            box-shadow: 0 0 4px rgba(255, 77, 166, 0.5);
+            border-radius: 2px 2px 0 0;
+            min-width: 3px;
+            transition: height 80ms ease;
+        }
+
+        .choices {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            color: var(--ink);
+            padding: 12px 14px;
+            border-radius: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: 160ms ease;
+            font: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(217, 72, 125, 0.55);
+            box-shadow: 0 0 0 1px rgba(217, 72, 125, 0.16) inset;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+            transform: none;
+        }
+
+        .hot {
+            border-color: rgba(214, 179, 107, 0.45);
+        }
+
+        .danger {
+            border-color: rgba(255, 91, 126, 0.52);
+        }
+
+        .log {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.24);
+            line-height: 1.8;
+            white-space: pre-wrap;
+            min-height: 156px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .log::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.015));
+            pointer-events: none;
+        }
+
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: #ffdced;
+            letter-spacing: 0.4px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .chip.active {
+            color: #fff6dc;
+            border-color: rgba(214, 179, 107, 0.5);
+            background: rgba(214, 179, 107, 0.12);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .status .label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .status .value {
+            font-size: 22px;
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.68;
+        }
+
+        .lyric-box {
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px dashed rgba(214, 179, 107, 0.35);
+            background: rgba(214, 179, 107, 0.06);
+            color: #ffecc6;
+            line-height: 1.75;
+            min-height: 124px;
+            white-space: pre-wrap;
+        }
+
+        .ending {
+            border-left: 3px solid var(--gold);
+            padding-left: 12px;
+            color: #ffecc6;
+        }
+
+        .footer-note {
+            margin-top: auto;
+            padding-top: 12px;
+            font-size: 12px;
+            color: var(--muted);
+            border-top: 1px solid var(--line);
+            line-height: 1.6;
+        }
+
+        .room-start {
+            background-image: linear-gradient(180deg, rgba(12, 24, 44, 0.10), rgba(0, 0, 0, 0.62)), linear-gradient(120deg, #0b1222, #080b15 55%, #1a0d17);
+        }
+
+        .room-corridor {
+            background-image: linear-gradient(180deg, rgba(29, 10, 35, 0.18), rgba(0, 0, 0, 0.62)), linear-gradient(120deg, #1a0718, #0b0912 52%, #190a1d);
+        }
+
+        .room-cat {
+            background-image: linear-gradient(180deg, rgba(44, 18, 25, 0.12), rgba(0, 0, 0, 0.55)), linear-gradient(120deg, #1f0f17, #120915 48%, #26131b);
+        }
+
+        .room-lab {
+            background-image: radial-gradient(circle at 55% 45%, rgba(255, 102, 178, 0.12), transparent 28%), linear-gradient(180deg, rgba(22, 10, 23, 0.12), rgba(0, 0, 0, 0.68)), linear-gradient(120deg, #160711, #09070d 48%, #160918);
+        }
+
+        .room-gallery {
+            background-image: linear-gradient(180deg, rgba(29, 15, 26, 0.15), rgba(0, 0, 0, 0.6)), linear-gradient(120deg, #250e19, #110810 50%, #1c0b13);
+        }
+
+        .room-observatory {
+            background-image: radial-gradient(circle at 50% 15%, rgba(214, 179, 107, 0.15), transparent 25%), linear-gradient(180deg, rgba(28, 16, 34, 0.2), rgba(7, 5, 10, 0.8)), linear-gradient(120deg, #2b0f1c, #130915 45%, #12081b 70%, #221019);
+        }
+
+        .room-greenhouse {
+            background-image: linear-gradient(180deg, rgba(17, 30, 18, 0.12), rgba(0, 0, 0, 0.52)), linear-gradient(120deg, #142215, #0c1110 48%, #1a1116);
+        }
+
+        .room-reactor {
+            background-image: radial-gradient(circle at 50% 50%, rgba(217, 72, 125, 0.12), transparent 30%), linear-gradient(180deg, rgba(31, 10, 21, 0.08), rgba(0, 0, 0, 0.7)), linear-gradient(120deg, #180812, #09070d 45%, #1b0b13);
+        }
+
+        .room-tower {
+            background-image: radial-gradient(circle at 50% 28%, rgba(214, 179, 107, 0.16), transparent 24%), linear-gradient(180deg, rgba(30, 12, 20, 0.12), rgba(0, 0, 0, 0.68)), linear-gradient(120deg, #210b16, #0c070d 54%, #13080c);
+        }
+
+        #titleScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at 50% 50%, #1a0020 0%, #000 72%);
+            overflow: hidden;
+        }
+
+        #titleScreen.hidden {
+            display: none;
+        }
+
+        .scanline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -10%;
+            height: 2px;
+            background: rgba(255, 0, 100, 0.28);
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+        }
+
+        .title-glow {
+            font-size: clamp(42px, 8vw, 82px);
+            color: #ff0066;
+            text-shadow: 0 0 30px #ff006640, 0 0 60px #ff006620, -2px 0 #00ffff30, 2px 0 #ff000030;
+            letter-spacing: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .title-sub {
+            font-size: 13px;
+            color: #ff006680;
+            letter-spacing: 4px;
+            margin-top: 8px;
+            margin-bottom: 42px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .title-btn {
+            padding: 16px 50px;
+            background: transparent;
+            border: 1px solid #ff0066;
+            color: #ff0066;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 4px;
+            transition: all 0.3s;
+        }
+
+        .title-btn:hover {
+            background: #ff006620;
+            box-shadow: 0 0 30px #ff006640;
+        }
+
+        .title-meta {
+            margin-top: 56px;
+            font-size: 11px;
+            color: #444;
+            line-height: 1.8;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .title-noise {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+            background-size: 3px 3px;
+            mix-blend-mode: screen;
+        }
+
+        .title-ghost {
+            position: absolute;
+            bottom: 12%;
+            right: 10%;
+            color: rgba(255, 255, 255, 0.06);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            animation: pulse 3.2s infinite;
+        }
+
+        #jumpScare {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.96);
+            color: #ff0033;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 18px #ff0033;
+        }
+
+        #jumpScare.active {
+            display: flex;
+            animation: flashBg 0.42s steps(2) 3;
+        }
+
+        #jumpText {
+            font-size: clamp(34px, 8vw, 96px);
+            letter-spacing: 4px;
+            animation: shake 0.08s infinite;
+            white-space: pre-wrap;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #jumpNoise {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+
+        #glitchOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            pointer-events: none;
+            opacity: 0;
+            background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 3px);
+            transition: opacity 120ms ease;
+        }
+
+        #glitchOverlay.show {
+            opacity: 1;
+        }
+
+        #puzzleModal {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.84);
+        }
+
+        #puzzleModal.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: rgba(9, 6, 13, 0.95);
+            border: 1px solid rgba(217, 72, 125, 0.45);
+            border-radius: 18px;
+            width: min(420px, 92vw);
+            padding: 24px;
+            box-shadow: 0 0 40px rgba(217, 72, 125, 0.18);
+        }
+
+        .modal-title {
+            margin: 0 0 10px;
+            color: #ffe9f5;
+            font-size: 22px;
+        }
+
+        .modal-text {
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+        }
+
+        .modal-hint {
+            color: #ffd0e1;
+            background: rgba(217, 72, 125, 0.08);
+            border: 1px dashed rgba(217, 72, 125, 0.28);
+            padding: 10px 12px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            white-space: pre-wrap;
+        }
+
+        .modal-input {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            padding: 12px 14px;
+            font: inherit;
+            outline: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        @keyframes scanline {
+            0% {
+                top: -5%;
+            }
+
+            100% {
+                top: 105%;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .38;
+            }
+
+            50% {
+                opacity: .92;
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(2px, 1px);
+            }
+
+            25% {
+                transform: translate(-2px, -1px);
+            }
+
+            50% {
+                transform: translate(1px, 2px);
+            }
+
+            75% {
+                transform: translate(-1px, -2px);
+            }
+
+            100% {
+                transform: translate(2px, 1px);
+            }
+        }
+
+        @keyframes flashBg {
+
+            0%,
+            100% {
+                background: rgba(0, 0, 0, .96);
+            }
+
+            50% {
+                background: rgba(120, 0, 12, .98);
+            }
+        }
+
+        @keyframes blink-cursor {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .typewriter-cursor {
+            display: inline;
+            color: var(--accent);
+            animation: blink-cursor 0.8s infinite;
+            font-weight: bold;
+        }
+
+        .room-desc,
+        .log {
+            cursor: pointer;
+        }
+
+        @media (max-width:900px) {
+            #app {
+                grid-template-columns: 1fr;
+            }
+
+            .stage,
+            .sidebar {
+                min-height: auto;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div id="titleScreen"><div class="scanline"></div><div class="title-noise"></div><div style="position:relative;z-index:1;text-align:center;padding:20px;"><div style="font-size:14px;color:#ff003360;letter-spacing:8px;margin-bottom:20px;font-family:'Courier New',monospace;">⚠ MARS LOCKDOWN // RESTRICTED ⚠</div><h1 class="title-glow" id="titleGlitch">NOVA PROTOCOL</h1><div class="title-sub">E S C A P E &nbsp; F R O M &nbsp; M A R S</div><button class="title-btn" id="startBtn">[ 醒 来 ]</button><div class="title-meta"><div>目标：离开王，离开 Mars</div><div>状态：高塔仍亮着，港口仍上锁</div><div id="titleMetaGlitch">警告：不要回头看任何一扇门</div></div></div><div class="title-ghost">the king is listening</div></div>
-  <div id="glitchOverlay"></div><div id="jumpScare"><div id="jumpText">别回头</div><div id="jumpNoise">█▓▒░ ▌▐ █▓▒░ ▌▐ █▓▒░</div></div><div id="dangerFlash"><span class="danger-text">王听见你了</span></div>
-  <div id="puzzleModal"><div class="modal-card"><h2 class="modal-title" id="puzzleTitle">密码盒子</h2><div class="modal-text" id="puzzleText"></div><div class="modal-hint" id="puzzleHint"></div><input id="puzzleInput" class="modal-input" autocomplete="off" /><div class="modal-actions"><button class="btn hot" id="puzzleConfirm">确认</button><button class="btn" id="puzzleCancel">离开</button></div></div></div>
-  <div id="app"><section class="panel stage"><h1 class="title">Thrall &amp; King</h1><div class="subtitle">Escape from Mars · 暗黑童话风恐怖解谜原型<br>你只想逃离王的火星帝国。点击选择，穿过低温舱、走廊、猫房、实验室与高塔，在假通关之后坠入更深的第二章。</div><div class="room-card"><div id="roomVisual" class="room-visual room-start"><h2 id="roomName" class="room-name"></h2><p id="roomDesc" class="room-desc"></p></div></div><div id="choices" class="choices"></div><div id="log" class="log"></div><div class="footer-note">从 Mars 的心脏逃出去。三件遗物会说话，而第二章里，连你的记忆都会开始说谎。</div></section><aside class="panel sidebar"><div class="section"><h3>BGM</h3><div class="bgm-player"><button id="bgmPlayBtn">▶</button><span class="bgm-track-name" id="bgmTrackName">默认bgm</span><select id="bgmSelect"><option value="0">默认bgm</option><option value="1">Cage of Stars</option><option value="2">Property of Elon Musk</option><option value="3">The Variable in Ruins</option></select></div><div class="spectrum-wrap" id="spectrum"></div></div><div class="section"><h3>状态</h3><div class="status-grid"><div class="status"><div class="label" id="sanityLabel">理智</div><div id="sanity" class="value">4</div><div class="meter"><div class="meter-fill" id="sanityFill" style="width:100%"></div></div></div><div class="status"><div class="label">警戒</div><div id="danger" class="value">0</div></div><div class="status"><div class="label">遗物/线索</div><div id="fragmentCount" class="value">0/3</div></div><div class="status"><div class="label">当前章节</div><div id="chapter" class="value">Ⅰ</div></div></div><div class="timer" id="chapterTwoTimer" style="display:none;margin-top:10px;">王的注视正在逼近…</div></div><div class="section"><h3>遗物</h3><div id="trackChips" class="chips"></div></div><div class="section"><h3>第二章线索</h3><div id="ch2Chips" class="chips"></div></div><div class="section"><h3>低语</h3><div id="lyricBox" class="lyric-box">还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。</div></div><div class="section ending"><h3>当前目标</h3><div id="objective" class="small">从低温舱醒来，穿过整座火星帝国，找到离港路线。每件遗物都是门，也是锁。</div></div></aside></div>
-  <script>
-    const GLITCH_CHARS='█▓▒░╔╗╚╝║═╬┼▄▀▌▐';
-    const TRACKS=[{id:'stardust',title:'星尘麻醉剂',keyWord:'引力',song:'The Variable in Ruins',fragment:'Your vulnerability… is my only gravity.\n你的脆弱……是我唯一的引力。'},{id:'rose',title:'水晶玫瑰',keyWord:'燃烧',song:'Cage of Stars',fragment:'In your cage, I burn, I glow.\n在你的牢笼里，我燃烧，我发光。'},{id:'chip',title:'变量芯片',keyWord:'献祭',song:'Property of Elon Musk',fragment:'I never loved you… not a single day… not at all… I just loved watching you die for me…\n我从来没有爱过你……一天都没有……一点也没有……我只是喜欢看着你为我死去……'}];
-    const CH2_ITEMS={coreKey:'核心钥匙',fleshShard:'熔炉残片',escapePod:'逃生舱模块',memoryThread:'记忆丝线'};
-    const ROOM_IMAGES={start:'IMG_8840.jpeg',corridor:'IMG_8841.jpeg',catroom:'IMG_8842.jpeg',lab:'IMG_8843.jpeg',gallery:'IMG_8844.jpeg',observatory:'IMG_8845.jpeg',greenhouse:'IMG_8846.jpeg',reactor:'IMG_8847.jpeg',tower:'IMG_8848.jpeg',throneHall:'IMG_8848.jpeg',fleshForge:'IMG_8847.jpeg',whisperVoid:'IMG_8509.jpeg',mindVault:'IMG_8849.jpeg'};
-    const ENDING_IMAGES={caught:'IMG_8509.jpeg',glass:'IMG_8509.jpeg',return:'IMG_8509.jpeg',misfire:'IMG_8509.jpeg',sedated:'IMG_8509.jpeg',escape:'IMG_8849.jpeg',chapter2Escape:'IMG_8849.jpeg'};
-    const BGM_LIST=[{name:'默认bgm',src:'飙车bgm 2.mp3'},{name:'Cage of Stars',src:'cage-of-stars.mp3'},{name:'Property of Elon Musk',src:'cage-of-black-hole 2.mp3'},{name:'The Variable in Ruins',src:'heat-death.mp3'}];
-    const state={mode:'title',sanity:4,danger:0,chapter:1,room:'start',fragments:[],ended:false,puzzle:null,jumpscares:0,chapter2:false,chapter2Items:[],falseDawnArmed:false,flags:{idCard:false,sawCats:false,sofaNote:false,roseKey:false,labRoute:false,heartTouched:false,galleryUnlocked:false,towerOpened:false}};
-    const rooms={start:{name:'低温舱',className:'room-start',desc:'你在刺骨的寒冷中醒来。破损休眠舱的蓝色冷冻液滴在金属地面上，红色应急灯一闪一闪。门外是火星深夜，门内是你迟迟不肯再留下的心。Nova 很清楚：这一次，她只想逃离王，逃离 Mars。',objective:'找到离开低温舱的方法。通行牌和应急门里至少有一个不会说谎。',choices:[{text:'检查破损通行牌',once:'idcard',action(){addLog('你在休眠舱旁找到一张裂开的通行牌。照片上的自己被霜花撕成两半，但芯片还亮着。身份识别还能勉强通过一扇门。');state.flags.idCard=true;}},{text:'读墙上的抓痕字迹',once:'walltext',action(){addLog('——沙沙——\n\n霜雾后的金属墙上只有一句话：\n\n「如果你终于醒了，就不要再回头。」\n\n像是你自己留给自己的。',{scary:true});bumpSanity(-1);delayedJump('不要再回头');}},{text:'推开应急门，进入走廊',goto:'corridor',require(){return state.flags.idCard;}}]},corridor:{name:'主走廊',className:'room-corridor',desc:'一条漫长的黑红走廊向前延伸。失灵屏幕循环播放火星宣传片：穹顶、星舰、玫瑰色天光，以及王在所有镜头背后的帝国剪影。左边传来很轻的猫叫，右边是实验区，更深处则是被丝绒幕布遮住的画廊入口。',objective:'摸清火星帝国的内部路径。猫房、实验区和画廊都在前面，但画廊不会对空手的人打开。',choices:[{text:'查看失灵显示屏',once:'screens',action(){addLog('——嗡——\n\n屏幕忽明忽暗，最后停在一行白字上：\n\n「火星欢迎留下来的人。」\n\n...嘶啦...整排屏幕同时黑掉，只剩你自己的倒影。',{scary:true});bumpDanger(1);delayedJump('留下来');}},{text:'拾起地上的珍珠',once:'pearl',action(){addLog('地上有一颗珍珠，旁边粘着三色猫毛。你突然想起这里曾经有一个被你精心布置过的房间——后来，它被改造成了更柔软、更难离开的地方。');}},{text:'进入猫房',goto:'catroom'},{text:'进入实验室',goto:'lab'},{text:'穿过幕布，前往画廊',goto:'gallery',require(){return state.flags.galleryUnlocked;}},{text:'回到低温舱',goto:'start'}]},catroom:{name:'猫房',className:'room-cat',desc:'这里和外面的冷硬金属完全不同。地毯柔软，水晶球悬浮，猫爬架像一座微型宫殿。三只猫的全息影像在光里缓慢转身，像还记得你，却也像在替谁守门。墙边是一只密码盒子，沙发下露出一页被揉皱的纸。',objective:'从这间过于温柔的房间里拿到真正能帮你离开的东西。画廊的钥匙就藏在密码盒子里。',choices:[{text:'触碰悬浮水晶球',once:'cats',action(){addLog('三只猫同时抬头看你。\n\n♪ ...喇叭里响起低沉男声... ♪\n\n「它们一直很好。你只要留下，就什么都不会失去。」\n\n你后退半步，心里只剩更强烈的逃离欲。',{scary:true});state.flags.sawCats=true;delayedJump('它们一直很好');}},{text:'查看沙发下的纸页',once:'sofaNote',action(){addLog('纸页上只有一句提示：\n\n「前八次是命运，第几次是选择？」\n\n底下被你自己用红笔乱涂乱画着。');state.flags.sofaNote=true;}},{text:'打开密码盒子',require(){return state.flags.sofaNote&&!state.flags.roseKey;},action(){openPuzzle({title:'密码盒子',text:'锁盒表面刻着一朵玫瑰，里面藏着画廊的钥匙。',hint:'前八次是命运，第几次是选择？',answer:'0009',onSuccess(){addLog('...咔嗒——\n\n锁盒弹开。里面躺着一把薄而冷的玫瑰钥匙，像一朵被冻结的花。你拿起它，知道画廊终于能开了。');state.flags.roseKey=true;state.flags.galleryUnlocked=true;},onFail(){addLog('——哔——\n\n密码错误。锁盒发出刺耳蜂鸣，天花板红灯亮了一瞬。',{scary:true});bumpDanger(1);delayedJump('0009');}});}},{text:'回到主走廊',goto:'corridor'}]},lab:{name:'实验室',className:'room-lab',desc:'粉色冷光从巨大的心核设备里缓慢流动出来，像火星人工心脏的一部分。四周屏幕显示港口封锁、轨道警戒和各个停机坪的离港许可。最深处的合金门通往画廊，而真正的离港路线，就藏在航线控制台里。',objective:'读取航线控制台，记下唯一能离开 Mars 的路线。没读到路线，最后就算摸到发射按钮，也不会真正成功。',choices:[{text:'读取航线控制台',once:'route',action(){addLog('你调出被隐藏的离港路线。北侧发射塔依然能手动点火，但必须先让三件遗物为心核供电，随后根据控制台上的轨道校准表完成发射。你把所有关键坐标都记了下来。');state.flags.labRoute=true;}},{text:'触碰心核装置',once:'core',action(){addLog('...咚...咚...装置表面的金属一阵发烫。屏幕跳出一句冷到像亲吻一样的话：\n\n「别跑。Mars 为你亮着。」\n\n...咚...咚...你猛地甩开手，胸口像被谁捏了一下。',{scary:true});state.flags.heartTouched=true;bumpSanity(-1);delayedJump('别跑');}},{text:'查看九块航线屏幕',once:'ninepanels',action(){addLog(state.flags.labRoute?'九块屏幕同时亮起，只有一条航线仍然保持稳定。你确认自己记下的是唯一不会在中途自毁的离港路径。':'九块屏幕里有八块在不断崩溃。最后一块却被权限锁住。没有读取主控制台，你看不懂哪一条才是真正能活着离开的路线。');}},{text:'用玫瑰钥匙解锁古老合金门，前往画廊',goto:'gallery',require(){return state.flags.roseKey;}},{text:'回到主走廊',goto:'corridor'}]},gallery:{name:'画廊',className:'room-gallery',desc:'黑红长廊尽头挂着一幅没有脸的肖像。所有画框都被擦得很亮，像有人一直在这里等待你回来。最中间那幅画前，摆着一只封存柜；右侧通向观测穹顶，左侧是被雾气吞没的玻璃温室。',objective:'找回第一件遗物，再决定去穹顶还是温室。',choices:[{text:'打开肖像前的封存柜',once:'rose',action(){addLog('...咔嗒...\n\n封存柜里静静躺着一朵【水晶玫瑰】。你拿起它时，花瓣像在微微发热。柜底同时亮起一句语录。');gainFragment('rose');}},{text:'凝视无脸肖像',once:'portrait',action(){addLog('你看了很久，最后在画布反光里只看见自己。不是收藏品，不是火星帝国的传奇名字，只是想离开的人。');delayedJump('你在这里');}},{text:'前往观测穹顶',goto:'observatory'},{text:'前往玻璃温室',goto:'greenhouse'},{text:'返回实验室',goto:'lab'},{text:'返回主走廊',goto:'corridor'}]},observatory:{name:'观测穹顶',className:'room-observatory',desc:'穹顶外是火星夜色。返航舰群像一串被谁牵引着的星。控制台仍在运转，屏幕角落闪着一只小小的注射标记。某种曾经用于安抚、留置、拖慢离开冲动的液体，被锁在这里。',objective:'取得第二件遗物，并确认北侧停机坪的前置校准。',choices:[{text:'开启药剂冷藏抽屉',once:'stardust',action(){addLog('...嘶——\n\n冷藏抽屉缓缓弹开，一支【星尘麻醉剂】在蓝白霜雾中滚到你指尖。它美得像宇宙尘埃，也危险得像留人用的温柔。');gainFragment('stardust');bumpSanity(-1);}},{text:'改写北侧停机坪坐标',once:'northport',action(){addLog('——嗒嗒嗒——你把路线悄悄写向北侧停机坪，系统却回传一行细字：\n\n「I know where you run before you run.」\n\n警戒随之升高。',{scary:true});bumpDanger(1);}},{text:'前往心核反应厅',goto:'reactor',require(){return hasFragment('stardust');}},{text:'返回画廊',goto:'gallery'}]},greenhouse:{name:'玻璃温室',className:'room-greenhouse',desc:'这里种着不会结果的红玫瑰，玻璃顶外是一层模糊的火星光。地面潮湿，像有人在这里站了很久很久。最深处的根系培养槽里卡着一枚芯片，像一块被埋起来的秘密。',objective:'拿到第三件遗物，同时别让温室警报彻底响起来。',choices:[{text:'从根系培养槽里取出芯片',once:'chip',action(){addLog('你拨开缠绕的透明根丝，拿出一枚【变量芯片】。它表面闪过一段语录，冷得像亲眼看着爱燃尽。');gainFragment('chip');}},{text:'砸开东侧玻璃试图直接逃走',once:'glassbreak',action(){addLog('——嘭——裂纹像血一样扩散开，可玻璃外面还有第二层穹顶。\n\n——呜呜呜——警报猛地亮起，整座温室都在提醒你：火星不是那么容易离开的。',{scary:true});bumpDanger(2);bumpSanity(-1);delayedJump('跑不掉');}},{text:'前往心核反应厅',goto:'reactor',require(){return hasFragment('chip');}},{text:'返回画廊',goto:'gallery'}]},reactor:{name:'心核反应厅',className:'room-reactor',desc:'巨大的心核在红光中缓慢脉动。三道锁环围住中央升降台，每一道都需要一件遗物。只有让它们一起点亮，发射塔控制厅才会重新接通。你终于走到火星的真正心脏。',objective:'把三件遗物依次送入锁环，强行打开通往高塔的路。',choices:[{text:'将【水晶玫瑰】送入第一锁环',once:'lock1',require(){return hasFragment('rose');},action(){addLog('...叮——【水晶玫瑰】在锁环里慢慢亮起。第一道光像爱本身，也像牢笼最柔软的那部分。');}},{text:'将【星尘麻醉剂】送入第二锁环',once:'lock2',require(){return hasFragment('stardust')&&used('lock1');},action(){addLog('...叮——【星尘麻醉剂】被心核抽空，第二道锁环泛起星尘一样的雾光。你知道这座帝国曾经多么擅长让人失去离开的力气。');}},{text:'将【变量芯片】送入第三锁环',once:'lock3',require(){return hasFragment('chip')&&used('lock2');},action(){addLog('...叮——【变量芯片】嵌入核心，第三道锁环随之彻底点燃。\n\n——轰——升降台苏醒，发射塔控制厅的权限被强制重新打开。');state.flags.towerOpened=true;}},{text:'强行越权点火',once:'force',action(){addLog('——哔哔哔——系统立刻判定你为入侵者。高塔红灯全亮，安保开始收束。',{scary:true});bumpDanger(2);delayedJump('权限不足');}},{text:'乘升降台前往发射塔控制厅',goto:'tower',require(){return state.flags.towerOpened;}},{text:'返回观测穹顶',goto:'observatory'},{text:'返回玻璃温室',goto:'greenhouse'}]},tower:{name:'发射塔控制厅',className:'room-tower',desc:'高塔之上，整座火星主城都在你脚下发光。主控屏已经恢复，发射按钮亮着，通讯频道里却只剩最后一道熟悉的男声。王没有现身，他只是让声音先落下来：\n\n「你真要离开 Mars？」',objective:'在发射前做出最后决定。是冲出 Mars，还是被这座星球重新抓回怀里？',choices:[{text:'按下发射按钮，直接离开 Mars',action(){endGame('escape');},require(){return allFragments()&&state.flags.labRoute&&state.danger<=3;}},{text:'按下发射按钮（航线未校准）',action(){endGame('misfire');},require(){return allFragments()&&!state.flags.labRoute;}},{text:'按下发射按钮（警戒过高）',action(){endGame('caught');},require(){return allFragments()&&state.flags.labRoute&&state.danger>3;}},{text:'回答：我害怕，我不走了',action(){endGame('return');}},{text:'在通讯里沉默，等待安保追上来',action(){endGame('caught');}}]},throneHall:{name:'王座大厅',className:'room-throne',desc:'第二章开始后，你被重新送回一处更深的空间。血红的火星光从裂缝洒进，悬浮王座像一颗被劈开的星核。地面每一次震颤，都像在提醒你：这里已经不是逃亡，而是回收。',objective:'找到通往更深层的钥匙，同时别被大厅里的回声吞没。',choices:[{text:'接近王座底座，尝试取走核心钥匙',once:'ch2-coreKey',action(){addLog('你在王座基座的阴影里摸到一枚冰冷的【核心钥匙】。抬头时，王座上方的监视光圈同时睁开。',{scary:true});addChapter2Item('coreKey');bumpDanger(1);gotoRoom('fleshForge');}},{text:'退到立柱后观察大厅回路',once:'ch2-observeThrone',action(){addLog('你听见大厅深处传来失真的低语，像整座高塔在用你的呼吸回声说话。你记下了一条隐蔽通道。');bumpSanity(-8);}},{text:'直接沿着低语最密集的方向前进',goto:'whisperVoid'}]},fleshForge:{name:'血肉熔炉',className:'room-forge',desc:'空气灼热粘稠，中央熔炉正在翻滚，管线与机械臂纠缠成一台无法命名的装配器。这里不生产武器，只生产顺从的结构。',objective:'拼出能穿过第二章的第一件装置，同时避免被熔炉锁定。',choices:[{text:'拼接金属芯、神经线与冷却管，组装逃生舱模块',once:'ch2-buildPod',action(){startForgePuzzle();}},{text:'绕到熔炉背后，切下一块冷却残片',once:'ch2-fleshShard',action(){addLog('你切下了一块带着冷光的【熔炉残片】。熔炉内壁立刻像活物一样颤了一下。',{scary:true});addChapter2Item('fleshShard');bumpSanity(-10);}},{text:'沿着高温检修桥前往心灵穹顶',goto:'mindVault',require(){return hasChapter2Item('escapePod')||hasChapter2Item('fleshShard');}}]},whisperVoid:{name:'低语深渊',className:'room-void',desc:'这里没有真正的墙壁，只有不断折回的耳语。脚下的表面时而坚硬时而松动，像是一层层被覆盖的记忆。你越安静，那些声音就离你越近。',objective:'识别真正属于你的词，拒绝让第二章替你命名。',choices:[{text:'输入反抗密码，对抗深渊注入',once:'ch2-password',action(){startPasswordChallenge();}},{text:'闭眼倾听，判断哪一句不是王说的',once:'ch2-whisperListen',action(){addLog('你在无数句“回来”里，辨认出一句非常轻的“继续跑”。那声音像你自己的。');bumpSanity(6);}},{text:'穿过低语最薄的一层，前往心灵穹顶',goto:'mindVault'}]},mindVault:{name:'心灵穹顶',className:'room-vault',desc:'透明穹顶里漂浮着被折叠成薄片的记忆。某些画面属于火星，某些画面属于你，某些则明显被篡改过。真正的出口不在门上，而在你能不能认出哪一段记忆还没有被王碰过。',objective:'重组正确记忆，拿到最后的线索，然后冲向第二章出口。',choices:[{text:'重组记忆顺序：猫房 → 实验室 → 低温舱',once:'ch2-memory',action(){startMemoryPuzzle();}},{text:'从穹顶底部抽离一缕未污染的记忆丝线',once:'ch2-memoryThread',action(){addLog('你抽出一缕发冷的【记忆丝线】。它在手心轻轻震动，却没有撒谎。');addChapter2Item('memoryThread');bumpDanger(1);}},{text:'带着所有线索冲向第二章出口',action(){endGame('chapter2Escape');},require(){return hasChapter2Item('coreKey')&&hasChapter2Item('escapePod')&&hasChapter2Item('memoryThread');}},{text:'放弃抵抗，停在穹顶中央',action(){endGame('sedated');}}]}};
-    const roomOrder=['start','corridor','catroom','lab','gallery','observatory','greenhouse','reactor','tower']; const usedActions=new Set(); let falseDawnTimeout=null,overrideTimeout=null,paranoiaTimer=null,bgmPlaying=false,audioCtx,analyser,srcNode,spectrumBars=[]; const bgmAudio=new Audio(BGM_LIST[0].src); bgmAudio.loop=true; bgmAudio.volume=.5;
-    const appEl=document.getElementById('app'),titleScreenEl=document.getElementById('titleScreen'),titleGlitchEl=document.getElementById('titleGlitch'),titleMetaGlitchEl=document.getElementById('titleMetaGlitch'),startBtnEl=document.getElementById('startBtn'),glitchOverlayEl=document.getElementById('glitchOverlay'),jumpScareEl=document.getElementById('jumpScare'),jumpTextEl=document.getElementById('jumpText'),roomNameEl=document.getElementById('roomName'),roomDescEl=document.getElementById('roomDesc'),roomVisualEl=document.getElementById('roomVisual'),choicesEl=document.getElementById('choices'),logEl=document.getElementById('log'),sanityEl=document.getElementById('sanity'),dangerEl=document.getElementById('danger'),fragmentCountEl=document.getElementById('fragmentCount'),chapterEl=document.getElementById('chapter'),trackChipsEl=document.getElementById('trackChips'),ch2ChipsEl=document.getElementById('ch2Chips'),lyricBoxEl=document.getElementById('lyricBox'),objectiveEl=document.getElementById('objective'),sanityLabelEl=document.getElementById('sanityLabel'),sanityFillEl=document.getElementById('sanityFill'),chapterTwoTimerEl=document.getElementById('chapterTwoTimer'),puzzleModalEl=document.getElementById('puzzleModal'),puzzleTitleEl=document.getElementById('puzzleTitle'),puzzleTextEl=document.getElementById('puzzleText'),puzzleHintEl=document.getElementById('puzzleHint'),puzzleInputEl=document.getElementById('puzzleInput'),puzzleConfirmEl=document.getElementById('puzzleConfirm'),puzzleCancelEl=document.getElementById('puzzleCancel');
-    function initAudioCtx(){if(audioCtx)return;audioCtx=new (window.AudioContext||window.webkitAudioContext)();analyser=audioCtx.createAnalyser();analyser.fftSize=64;srcNode=audioCtx.createMediaElementSource(bgmAudio);srcNode.connect(analyser);analyser.connect(audioCtx.destination);const wrap=document.getElementById('spectrum');for(let i=0;i<analyser.frequencyBinCount;i++){const bar=document.createElement('div');bar.className='bar';bar.style.height='2px';wrap.appendChild(bar);spectrumBars.push(bar);}drawSpectrum();}
-    function drawSpectrum(){if(!analyser)return;requestAnimationFrame(drawSpectrum);const data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data);for(let i=0;i<spectrumBars.length;i++)spectrumBars[i].style.height=Math.max(2,(data[i]/255)*32)+'px';}
-    function toggleBGM(){initAudioCtx();if(audioCtx.state==='suspended')audioCtx.resume();if(bgmPlaying){bgmAudio.pause();bgmPlaying=false;document.getElementById('bgmPlayBtn').textContent='▶';}else{bgmAudio.play();bgmPlaying=true;document.getElementById('bgmPlayBtn').textContent='⏸';}}
-    function switchBGM(index){const wasPlaying=bgmPlaying;bgmAudio.src=BGM_LIST[index].src;document.getElementById('bgmTrackName').textContent=BGM_LIST[index].name;if(wasPlaying)bgmAudio.play();}
-    function applyRoomArt(key){const image=ROOM_IMAGES[key];if(!image){roomVisualEl.style.backgroundImage='';return;}roomVisualEl.style.backgroundImage=`linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.22)), url('${image}')`;roomVisualEl.style.backgroundSize='cover';roomVisualEl.style.backgroundPosition='center';}
-    function applyEndingArt(kind,roomKey){const image=ENDING_IMAGES[kind]||ROOM_IMAGES[roomKey];if(!image){roomVisualEl.style.backgroundImage='';return;}roomVisualEl.style.backgroundImage=`linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.30)), url('${image}')`;roomVisualEl.style.backgroundSize='cover';roomVisualEl.style.backgroundPosition='center';}
-    function corruptText(text,intensity=.045){return text.split('').map(ch=>(Math.random()<intensity&&ch!=='\n'&&ch!==' ')?GLITCH_CHARS[Math.floor(Math.random()*GLITCH_CHARS.length)]:ch).join('');}
-    function pulseGlitch(){glitchOverlayEl.classList.add('show');appEl.classList.add('flicker');setTimeout(()=>{glitchOverlayEl.classList.remove('show');appEl.classList.remove('flicker');},160);}
-    function triggerJump(text='别回头'){state.jumpscares+=1;jumpTextEl.textContent=corruptText(text,.18);jumpScareEl.classList.add('active');setTimeout(()=>jumpScareEl.classList.remove('active'),1100);pulseGlitch();}
-    function delayedJump(text){setTimeout(()=>triggerJump(text),320);}
-    function richText(text){let html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');html=html.replace(/【([^】]+)】/g,"<span class='hl-item'>【$1】</span>").replace(/《([^》]+)》/g,"<span class='hl-song'>《$1》</span>").replace(/「([^」]+)」/g,"<span class='hl-dialog'>「$1」</span>").replace(/\"([^\"]+)\"/g,"<span class='hl-lyric'>“$1”</span>").replace(/(——[^—\n]{1,16}——)/g,"<span class='hl-sfx'>$1</span>").replace(/(\.\.\.[^\.\n]{1,16}\.\.\.)/g,"<span class='hl-sfx'>$1</span>").replace(/\n/g,'<br>');return html;}
-    const typewriterTimers=new Map();
-    function typewrite(el,text,speed=26,callback){if(typewriterTimers.has(el)){clearTimeout(typewriterTimers.get(el));typewriterTimers.delete(el);}let i=0;el.textContent='';const cursor=document.createElement('span');cursor.className='typewriter-cursor';cursor.textContent='▊';function finish(){el.innerHTML=richText(text);typewriterTimers.delete(el);if(callback)callback();}function tick(){if(i<text.length){el.textContent=text.slice(0,i+1);el.appendChild(cursor);i++;typewriterTimers.set(el,setTimeout(tick,speed));}else finish();}const skipHandler=()=>{if(typewriterTimers.has(el)){clearTimeout(typewriterTimers.get(el));finish();}el.removeEventListener('click',skipHandler);};el.addEventListener('click',skipHandler);tick();}
-    function used(key){return usedActions.has(key);} function hasFragment(id){return state.fragments.some(x=>x.id===id);} function allFragments(){return state.fragments.length===TRACKS.length;} function hasChapter2Item(id){return state.chapter2Items.includes(id);} function addChapter2Item(id){if(!hasChapter2Item(id))state.chapter2Items.push(id);renderSidebar();}
-    function chapterLabel(){return state.chapter2?'Ⅱ':['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ'][Math.max(0,state.chapter-1)]||'Ⅰ';}
-    function addLog(text,{glitch=false,scary=false}={}){const displayText=glitch?corruptText(text,.025):text;if(scary){logEl.classList.add('log-scary');setTimeout(()=>logEl.classList.remove('log-scary'),2200);}typewrite(logEl,displayText,24,()=>{if(!state.chapter2){if(state.danger>=5&&!state.ended)endGame('caught');if(state.sanity<=0&&!state.ended)endGame('glass');}else{if(state.sanity<=0&&!state.ended)endGame('sedated');}});renderSidebar();pulseGlitch();}
-    function bumpDanger(delta){state.danger=Math.max(0,state.danger+delta);renderSidebar();if(delta>0){const flash=document.getElementById('dangerFlash');flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');setTimeout(()=>flash.classList.remove('active'),900);}}
-    function bumpSanity(delta){state.sanity=Math.max(0,state.sanity+delta);renderSidebar();if(state.chapter2&&state.sanity<=25)delayedJump('不要停下');}
-    function gainFragment(id){const track=TRACKS.find(t=>t.id===id);if(!track||hasFragment(id))return;state.fragments.push(track);typewrite(logEl,`...叮——\n\n你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n“${track.fragment}”`,20);renderSidebar();}
-    function openPuzzle(config){state.puzzle=config;puzzleTitleEl.textContent=config.title;puzzleTextEl.textContent=config.text;puzzleHintEl.textContent=config.hint;puzzleInputEl.value='';puzzleModalEl.classList.add('active');setTimeout(()=>puzzleInputEl.focus(),30);} function closePuzzle(){state.puzzle=null;puzzleModalEl.classList.remove('active');} function solvePuzzle(){if(!state.puzzle)return;const value=puzzleInputEl.value.trim();const cfg=state.puzzle;closePuzzle();if(value===cfg.answer)cfg.onSuccess();else cfg.onFail();render();}
-    function gotoRoom(id){state.room=id;if(!state.chapter2)state.chapter=roomOrder.indexOf(id)+1;render();}
-    function startForgePuzzle(){openPuzzle({title:'熔炉拼装',text:'把逃生舱模块按正确顺序拼起来。',hint:'顺序提示：金属芯 → 神经线 → 冷却管\n输入三个词，用-连接。',answer:'金属芯-神经线-冷却管',onSuccess(){addLog('熔炉短暂熄火。你从翻滚的噪音里拖出了【逃生舱模块】。');addChapter2Item('escapePod');bumpSanity(8);},onFail(){addLog('拼装顺序错误。熔炉喷出一阵灼热气浪。',{scary:true});bumpSanity(-18);bumpDanger(1);}});}
-    function startPasswordChallenge(){openPuzzle({title:'反抗密码',text:'低语要求你报出“真正属于你自己的名字”。',hint:'提示：输入 Kitten 或 kitten。',answer:'kitten',onSuccess(){addLog('密码像刀一样切开低语。深渊第一次后退，你听见一声不属于王的呼吸。');bumpSanity(12);gotoRoom('fleshForge');},onFail(){addLog('深渊没有接受你的回答。那些声音同时靠近，像潮水一样涌来。',{scary:true});bumpSanity(-22);bumpDanger(1);}});}
-    function startMemoryPuzzle(){openPuzzle({title:'记忆顺序',text:'穹顶要求你选出未被篡改的顺序。',hint:'输入：猫房-实验室-低温舱',answer:'猫房-实验室-低温舱',onSuccess(){addLog('记忆片层一片片对齐。你从穹顶底部抽出了【记忆丝线】。');addChapter2Item('memoryThread');bumpSanity(10);},onFail(){addLog('错误顺序让穹顶瞬间坍缩。你被自己的假记忆困住了几秒钟。',{scary:true});bumpSanity(-28);}});}
-    function clearChapterTwoTimers(){if(paranoiaTimer){clearInterval(paranoiaTimer);paranoiaTimer=null;}if(falseDawnTimeout){clearTimeout(falseDawnTimeout);falseDawnTimeout=null;}if(overrideTimeout){clearTimeout(overrideTimeout);overrideTimeout=null;}}
-    function endGame(kind){state.ended=true;const endings={caught:{room:'tower',title:'坏结局 · 被带回高塔',text:'你还没来得及真正点火，高塔门就先一步合拢。安保灯带逐次亮起，通讯频道里只剩那道冷静得近乎温柔的声音：\n\n「Nova，别再跑了。」\n\n你没有离开 Mars。Mars 把你重新抱回了自己怀里。',objective:'减少警戒，别让安保在你到达发射按钮前先一步抵达。'},glass:{room:'greenhouse',title:'坏结局 · 温室沉睡',text:'你把太多恐惧误认成出口。温室玻璃一层层合拢，红玫瑰在脚边亮起。你最后看见的是自己映在玻璃上的影子——漂亮、疲惫、仍旧没能走出 Mars。',objective:'保持理智。真正的出口不在温室玻璃外，而在更高的塔。'},return:{room:'tower',title:'坏结局 · 你没有按下去',text:'你站在发射按钮前，最后还是把手收了回来。高塔外的风掠过穹顶，Mars 继续在脚下发亮。通讯频道另一端没有欢呼，只有一声很轻的叹息。\n\n你没离开王，也没离开 Mars。',objective:'只要你真的按下去，火星也不是不能甩在身后。'},misfire:{room:'tower',title:'坏结局 · 航线错位',text:'你按下发射按钮，可主控屏瞬间变红。因为你没有读取实验室航线控制台，点火参数是错的。整座高塔发出尖锐警报，发射序列被紧急锁死。\n\n你走到了最后，却还是没能真正离开 Mars。',objective:'读取实验室航线控制台。没有那条路线，就没有真正的逃脱。'},escape:{room:'tower',title:'真结局 · Escape from Mars',text:'你按下发射按钮。整座高塔像一支被拉满的弓，点火、震动、咆哮。舱门闭合前，你最后一次俯瞰王的火星帝国：穹顶、花园、走廊、猫房、实验室，全都在红色地平线上越缩越小。\n\n遗物仍在你掌心发热，可这次它们不再是锁。它们只是证据：你曾被 Mars 留住过，但你还是走了。',objective:'你离开了 Mars。剩下的故事，将在更远的真空里继续。'},sedated:{room:'throneHall',title:'坏结局 · 第二章沉眠',text:'你在第二章里停得太久了。监视光圈逐一闭合，穹顶里的低语替你做完了最后的决定。你的名字被折进一条看不见的协议里，从此再也没有离开。',objective:'不要停下来。在第二章里，静止就是把自己交给王。'},chapter2Escape:{room:'mindVault',title:'真结局 · 穿透第二章',text:'你带着【核心钥匙】、【逃生舱模块】和【记忆丝线】冲出穹顶。第二章像一层被撕开的旧幕布，在你身后开始塌陷。那些被篡改的记忆一片片脱落，而你终于带着仍旧属于自己的部分，穿过了王为你写下的第二重牢笼。',objective:'你不只是离开了 Mars，也从第二章里活着走了出来。'}};
-      const ending=endings[kind]; if(kind==='escape'&&!state.falseDawnArmed){state.falseDawnArmed=true;roomNameEl.textContent=ending.title;roomVisualEl.className=`room-visual ${rooms[ending.room].className}`;applyEndingArt(kind,ending.room);objectiveEl.textContent=ending.objective;typewrite(logEl,ending.text,32);typewrite(roomDescEl,ending.text,32);choicesEl.innerHTML='';const btn=document.createElement('button');btn.className='btn hot';btn.textContent='但是，你真的这么简单就逃离了吗？';btn.onclick=()=>{if(falseDawnTimeout)clearTimeout(falseDawnTimeout);triggerFalseDawn();};choicesEl.appendChild(btn);falseDawnTimeout=setTimeout(triggerFalseDawn,8000);state.ended=false;return;} clearChapterTwoTimers();roomNameEl.textContent=ending.title;roomVisualEl.className=`room-visual ${rooms[ending.room].className}`;applyEndingArt(kind,ending.room);choicesEl.innerHTML='';const restart=document.createElement('button');restart.className='btn hot';restart.textContent='重新开始';restart.onclick=()=>location.reload();choicesEl.appendChild(restart);objectiveEl.textContent=ending.objective;typewrite(logEl,ending.text,32);typewrite(roomDescEl,ending.text,32);if(!['chapter2Escape'].includes(kind))triggerJump(kind==='misfire'?'航线错误':'别再跑了');}
-    function triggerFalseDawn(){clearChapterTwoTimers();choicesEl.innerHTML='';roomNameEl.textContent='[ ESCAPE SUCCESSFUL ]';roomVisualEl.style.backgroundImage='';roomVisualEl.className='room-visual';roomVisualEl.style.background='#000';objectiveEl.textContent='你赢了。导航已锁定地球航线。脱离引力圈。';const text='引擎点火。失重感传来，巨大的推力将你死死按在驾驶座上。视野里，Mars 的红土正在剥落、远去。\n\n你赢了。导航已锁定地球航线。脱离引力圈。';typewrite(logEl,text,28);typewrite(roomDescEl,text,28);overrideTimeout=setTimeout(initiateOverride,8000);}
-    function initiateOverride(){clearChapterTwoTimers();document.querySelector('.panel.stage').style.display='none';document.querySelector('.panel.sidebar').style.display='none';const overlayDiv=document.createElement('div');overlayDiv.id='overrideOverlay';overlayDiv.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;';const codeBlock=document.createElement('div');codeBlock.style.cssText='color:#00e5ff;font-family:"Courier New",monospace;font-size:1.1rem;line-height:1.9;max-width:700px;text-align:center;text-shadow:0 0 12px #00e5ff;';codeBlock.innerHTML='<p style="font-size:1.4rem;font-weight:bold;margin-bottom:1.2rem;">SYSTEM WARNING: NAVIGATION OVERRIDDEN<br>ACCESS LEVEL: OMEGA</p><p>屏幕瞬间被冰蓝色的代码淹没。不是故障，是接管。星舰开始掉头，以不可抗拒的姿态重新驶入火星的引力网。</p><p style="margin-top:1rem;font-style:italic;">"你以为自己真的飞出去了吗？整个第二层协议一直在等你。"</p>';overlayDiv.appendChild(codeBlock);const wakeBtn=document.createElement('button');wakeBtn.className='btn hot';wakeBtn.textContent='[ 醒来 ]';wakeBtn.style.cssText='margin-top:2.5rem;font-size:1.1rem;border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08);';wakeBtn.onclick=startChapterTwo;overlayDiv.appendChild(wakeBtn);document.body.appendChild(overlayDiv);pulseGlitch();triggerJump('NAVIGATION OVERRIDDEN');}
-    function startChapterTwo(){const overlay=document.getElementById('overrideOverlay');if(overlay)overlay.remove();document.querySelector('.panel.stage').style.display='';document.querySelector('.panel.sidebar').style.display='';state.chapter2=true;state.ended=false;state.room='throneHall';state.chapter=10;state.danger=1;state.sanity=100;chapterTwoTimerEl.style.display='block';sanityLabelEl.textContent='稳定度';objectiveEl.textContent='第二章开始。拿到三件线索，穿过王写下的第二重牢笼。';addLog('你在一阵不属于火星的静默中醒来。第二章不是新的地点，而是新的规则。这里的门不会直接碾碎你，它们会先尝试替你重新定义自己。',{scary:true});startParanoiaTimer();gotoRoom('throneHall');}
-    function startParanoiaTimer(){clearChapterTwoTimers();chapterTwoTimerEl.style.display='block';paranoiaTimer=setInterval(()=>{if(!state.chapter2||state.ended)return;bumpDanger(1);if(Math.random()<0.55)delayedJump('王在靠近');if(state.danger>=5){clearChapterTwoTimers();endGame('sedated');}},45000);}
-    function renderSidebar(){sanityEl.textContent=state.sanity;dangerEl.textContent=state.danger;fragmentCountEl.textContent=state.chapter2?`${state.chapter2Items.length}/3`:`${state.fragments.length}/3`;chapterEl.textContent=state.chapter2?'Ⅱ':(['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ'][Math.max(0,state.chapter-1)]||'Ⅰ');sanityFillEl.style.width=`${Math.max(0,Math.min(100,state.chapter2?state.sanity:state.sanity*25))}%`;trackChipsEl.innerHTML='';TRACKS.forEach(track=>{const chip=document.createElement('div');chip.className='chip'+(hasFragment(track.id)?' active':'');chip.textContent=hasFragment(track.id)?`${track.title} · ${track.keyWord}`:`${track.title} · 未拾取`;trackChipsEl.appendChild(chip);});ch2ChipsEl.innerHTML='';Object.entries(CH2_ITEMS).forEach(([key,name])=>{const chip=document.createElement('div');chip.className='chip'+(hasChapter2Item(key)?' active':'');chip.textContent=hasChapter2Item(key)?name:`${name} · 未取得`;ch2ChipsEl.appendChild(chip);});if(state.chapter2){lyricBoxEl.innerHTML=richText(state.chapter2Items.length?state.chapter2Items.map(id=>`【${CH2_ITEMS[id]}】\n这是你还没被第二章夺走的部分。`).join('\n\n'):'第二章开始后，连低语都变得更像命令。你需要在这里找回三样真正属于你的东西。');}else{lyricBoxEl.innerHTML=state.fragments.length?richText(state.fragments.map(x=>`【${x.title}】—《${x.song}》\n"${x.fragment}"`).join('\n\n')):'还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。';}}
-    let lastRenderedRoom=null; function render(){if(state.mode==='title')return;const room=rooms[state.room];roomNameEl.textContent=room.name;roomVisualEl.className=`room-visual ${room.className}`;applyRoomArt(state.room);objectiveEl.textContent=room.objective;if(state.room!==lastRenderedRoom){typewrite(roomDescEl,room.desc,26);typewrite(logEl,room.desc,22);lastRenderedRoom=state.room;}choicesEl.innerHTML='';room.choices.forEach(choice=>{if(choice.require&&!choice.require())return;if(choice.once&&used(choice.once))return;const btn=document.createElement('button');btn.className='btn'+(choice.goto?'':' hot');if(/逃|警报|强行|发射|错位|深渊|穹顶/.test(choice.text))btn.className+=' danger';btn.textContent=choice.text;btn.onclick=()=>{if(state.ended)return;if(choice.once)usedActions.add(choice.once);if(choice.action)choice.action();if(choice.goto&&!state.ended)gotoRoom(choice.goto);if(!choice.goto&&!state.ended)render();};choicesEl.appendChild(btn);});renderSidebar();}
-    function startGame(){state.mode='play';titleScreenEl.classList.add('hidden');state.chapter=1;render();pulseGlitch();initAudioCtx();if(audioCtx.state==='suspended')audioCtx.resume();bgmAudio.play();bgmPlaying=true;document.getElementById('bgmPlayBtn').textContent='⏸';}
-    startBtnEl.addEventListener('click',startGame);document.getElementById('bgmPlayBtn').addEventListener('click',toggleBGM);document.getElementById('bgmSelect').addEventListener('change',e=>switchBGM(+e.target.value));puzzleConfirmEl.addEventListener('click',solvePuzzle);puzzleCancelEl.addEventListener('click',closePuzzle);puzzleInputEl.addEventListener('keydown',e=>{if(e.key==='Enter')solvePuzzle();});setInterval(()=>{titleGlitchEl.textContent=corruptText('NOVA PROTOCOL',.03);titleMetaGlitchEl.textContent=corruptText('警告：不要回头看任何一扇门',.04);},180);setInterval(()=>{if(state.mode==='play'&&Math.random()<(state.chapter2?.16:.08))pulseGlitch();if(state.chapter2&&!state.ended&&Math.random()<.10)triggerJump('别停下');},2200);
-  </script>
+    <div id="titleScreen">
+        <div class="scanline"></div>
+        <div class="title-noise"></div>
+        <div style="position:relative; z-index:1; text-align:center; padding: 20px;">
+            <div style="font-size:14px;color:#ff003360;letter-spacing:8px;margin-bottom:20px;font-family:'Courier New', monospace;">⚠ MARS LOCKDOWN // RESTRICTED ⚠</div>
+            <h1 class="title-glow" id="titleGlitch">NOVA PROTOCOL</h1>
+            <div class="title-sub">E S C A P E &nbsp; F R O M &nbsp; M A R S</div><button class="title-btn" id="startBtn">[ 醒 来 ]</button>
+            <div class="title-meta">
+                <div>目标：离开王，离开 Mars</div>
+                <div>状态：高塔仍亮着，港口仍上锁</div>
+                <div id="titleMetaGlitch">警告：不要回头看任何一扇门</div>
+            </div>
+        </div>
+        <div class="title-ghost">the king is listening</div>
+    </div>
+    <div id="glitchOverlay"></div>
+    <div id="jumpScare">
+        <div id="jumpText">别回头</div>
+        <div id="jumpNoise">█▓▒░ ▌▐ █▓▒░ ▌▐ █▓▒░</div>
+    </div>
+    <div id="puzzleModal">
+        <div class="modal-card">
+            <h2 class="modal-title" id="puzzleTitle">密码盒子</h2>
+            <div class="modal-text" id="puzzleText"></div>
+            <div class="modal-hint" id="puzzleHint"></div><input id="puzzleInput" class="modal-input" inputmode="numeric" autocomplete="off" placeholder="输入四位密码" />
+            <div class="modal-actions"><button class="btn hot" id="puzzleConfirm">确认</button><button class="btn" id="puzzleCancel">离开</button></div>
+        </div>
+    </div>
+    <div id="dangerFlash"><span class="danger-text">王听见你了</span></div>
+    <div id="app">
+        <section class="panel stage">
+            <h1 class="title">Thrall &amp; King</h1>
+            <div class="subtitle">Escape from Mars · 暗黑童话风恐怖解谜原型<br>你只想逃离王的火星帝国。点击选择，穿过低温舱、走廊、猫房、实验室与高塔，收集三件遗物，决定你能否真正离开 Mars。</div>
+            <div class="room-card">
+                <div id="roomVisual" class="room-visual room-start">
+                    <h2 id="roomName" class="room-name"></h2>
+                </div>
+            </div>
+            <div id="choices" class="choices"></div>
+            <div id="log" class="log"></div>
+            <div class="footer-note">从 Mars 的心脏逃出去。三件遗物仍会说话，而每一句话，都像王留在身后的引力。</div>
+        </section>
+        <aside class="panel sidebar">
+            <div class="section">
+                <h3>BGM</h3>
+                <div class="bgm-player">
+                    <button id="bgmPlayBtn" title="播放/暂停">▶</button>
+                    <span class="bgm-track-name" id="bgmTrackName">默认bgm</span>
+                    <select id="bgmSelect">
+                        <option value="0">默认bgm</option>
+                        <option value="1">Cage of Stars</option>
+                        <option value="2">Property of Elon Musk</option>
+                        <option value="3">The Variable in Ruins</option>
+                    </select>
+                </div>
+                <div class="spectrum-wrap" id="spectrum"></div>
+            </div>
+            <div class="section">
+                <h3>状态</h3>
+                <div class="status-grid">
+                    <div class="status">
+                        <div class="label">理智</div>
+                        <div id="sanity" class="value">4</div>
+                    </div>
+                    <div class="status">
+                        <div class="label">警戒</div>
+                        <div id="danger" class="value">0</div>
+                    </div>
+                    <div class="status">
+                        <div class="label">遗物碎片</div>
+                        <div id="fragmentCount" class="value">0/3</div>
+                    </div>
+                    <div class="status">
+                        <div class="label">当前章节</div>
+                        <div id="chapter" class="value">Ⅰ</div>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <h3>遗物收集</h3>
+                <div id="trackChips" class="chips"></div>
+            </div>
+            <div class="section">
+                <h3>已拾取遗物</h3>
+                <div id="lyricBox" class="lyric-box">还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。</div>
+            </div>
+            <div class="section">
+                <h3>风格与玩法</h3>
+                <div class="small">1. 探索九个场景：低温舱、走廊、猫房、实验室、画廊、观测穹顶、玻璃温室、心核反应厅、发射塔控制厅。<br>2. 三件遗物分别对应三种真相：<strong>引力</strong>、<strong>燃烧</strong>、<strong>献祭</strong>。<br>3. 警戒太高会被高塔安保收束，理智归零会被温室吞没。</div>
+            </div>
+            <div class="section ending">
+                <h3>当前目标</h3>
+                <div id="objective" class="small">从低温舱醒来，穿过整座火星帝国，找到离港路线。每件遗物都是门，也是锁。</div>
+            </div>
+        </aside>
+    </div>
+    <script>
+        const GLITCH_CHARS = '█▓▒░╔╗╚╝║═╬┼▄▀▌▐';
+
+        /* ── BGM 系统 ── */
+        const BGM_LIST = [
+            { name: '默认bgm', src: '飙车bgm 2.mp3' },
+            { name: 'Cage of Stars', src: 'cage-of-stars.mp3' },
+            { name: 'Property of Elon Musk', src: 'cage-of-black-hole 2.mp3' },
+            { name: 'The Variable in Ruins', src: 'heat-death.mp3' }
+        ];
+        const bgmAudio = new Audio(BGM_LIST[0].src);
+        bgmAudio.loop = true;
+        bgmAudio.volume = 0.5;
+        let bgmPlaying = false;
+        let bgmIndex = 0;
+        let audioCtx, analyser, srcNode, spectrumBars = [];
+
+        function initAudioCtx() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            srcNode = audioCtx.createMediaElementSource(bgmAudio);
+            srcNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            const wrap = document.getElementById('spectrum');
+            const barCount = analyser.frequencyBinCount;
+            for (let i = 0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = '2px';
+                wrap.appendChild(bar);
+                spectrumBars.push(bar);
+            }
+            drawSpectrum();
+        }
+
+        function drawSpectrum() {
+            if (!analyser) return;
+            requestAnimationFrame(drawSpectrum);
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+            for (let i = 0; i < spectrumBars.length; i++) {
+                const h = Math.max(2, (data[i] / 255) * 32);
+                spectrumBars[i].style.height = h + 'px';
+            }
+        }
+
+        function toggleBGM() {
+            initAudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (bgmPlaying) {
+                bgmAudio.pause();
+                bgmPlaying = false;
+                document.getElementById('bgmPlayBtn').textContent = '▶';
+            } else {
+                bgmAudio.play();
+                bgmPlaying = true;
+                document.getElementById('bgmPlayBtn').textContent = '⏸';
+            }
+        }
+
+        function switchBGM(index) {
+            bgmIndex = index;
+            const wasPlaying = bgmPlaying;
+            bgmAudio.src = BGM_LIST[index].src;
+            document.getElementById('bgmTrackName').textContent = BGM_LIST[index].name;
+            if (wasPlaying) {
+                bgmAudio.play();
+            }
+        }
+
+        const TRACKS = [{
+            id: 'stardust',
+            title: '星尘麻醉剂',
+            keyWord: '引力',
+            song: 'The Variable in Ruins',
+            fragment: 'Your vulnerability… is my only gravity.\n你的脆弱……是我唯一的引力。'
+        }, {
+            id: 'rose',
+            title: '水晶玫瑰',
+            keyWord: '燃烧',
+            song: 'Cage of Stars',
+            fragment: 'In your cage, I burn, I glow.\n在你的牢笼里，我燃烧，我发光。'
+        }, {
+            id: 'chip',
+            title: '变量芯片',
+            keyWord: '献祭',
+            song: 'Property of Elon Musk',
+            fragment: 'I never loved you… not a single day… not at all… I just loved watching you die for me…\n我从来没有爱过你……一天都没有……一点也没有……我只是喜欢看着你为我死去……'
+        }];
+        const ROOM_IMAGES = {
+            start: 'IMG_8840.jpeg',
+            corridor: 'IMG_8841.jpeg',
+            catroom: 'IMG_8842.jpeg',
+            lab: 'IMG_8843.jpeg',
+            gallery: 'IMG_8844.jpeg',
+            observatory: 'IMG_8845.jpeg',
+            greenhouse: 'IMG_8846.jpeg',
+            reactor: 'IMG_8847.jpeg',
+            tower: 'IMG_8848.jpeg'
+        };
+        const ENDING_IMAGES = {
+            caught: 'IMG_8509.jpeg',
+            glass: 'IMG_8509.jpeg',
+            return: 'IMG_8509.jpeg',
+            misfire: 'IMG_8509.jpeg',
+            escape: 'IMG_8849.jpeg'
+        };
+        const state = {
+            mode: 'title',
+            sanity: 4,
+            danger: 0,
+            chapter: 1,
+            room: 'start',
+            fragments: [],
+            flags: {
+                idCard: false,
+                sawCats: false,
+                sofaNote: false,
+                roseKey: false,
+                labRoute: false,
+                heartTouched: false,
+                galleryUnlocked: false,
+                towerOpened: false
+            },
+            ended: false,
+            puzzle: null,
+            jumpscares: 0
+        };
+        const rooms = {
+            start: {
+                name: '低温舱',
+                className: 'room-start',
+                desc: '你在刺骨的寒冷中醒来。破损休眠舱的蓝色冷冻液滴在金属地面上，红色应急灯一闪一闪。门外是火星深夜，门内是你迟迟不肯再留下的心。Nova 很清楚：这一次，她只想逃离王，逃离 Mars。',
+                objective: '找到离开低温舱的方法。通行牌和应急门里至少有一个不会说谎。',
+                choices: [{
+                    text: '检查破损通行牌',
+                    action() {
+                        addLog('你在休眠舱旁找到一张裂开的通行牌。照片上的自己被霜花撕成两半，但芯片还亮着。身份识别还能勉强通过一扇门。');
+                        state.flags.idCard = true;
+                    },
+                    once: 'idcard'
+                }, {
+                    text: '读墙上的抓痕字迹',
+                    action() {
+                        addLog('——沙沙——\n\n霜雾后的金属墙上只有一句话：\n\n「如果你终于醒了，就不要再回头。」\n\n像是你自己留给自己的。', { scary: true });
+                        bumpSanity(-1);
+                        delayedJump('不要再回头');
+                    },
+                    once: 'walltext'
+                }, {
+                    text: '推开应急门，进入走廊',
+                    goto: 'corridor',
+                    require() {
+                        return state.flags.idCard;
+                    }
+                }]
+            },
+            corridor: {
+                name: '主走廊',
+                className: 'room-corridor',
+                desc: '一条漫长的黑红走廊向前延伸。失灵屏幕循环播放火星宣传片：穹顶、星舰、玫瑰色天光，以及王在所有镜头背后的帝国剪影。左边传来很轻的猫叫，右边是实验区，更深处则是被丝绒幕布遮住的画廊入口。',
+                objective: '摸清火星帝国的内部路径。猫房、实验区和画廊都在前面，但画廊不会对空手的人打开。',
+                choices: [{
+                    text: '查看失灵显示屏',
+                    action() {
+                        addLog('——嗡——\n\n屏幕忽明忽暗，最后停在一行白字上：\n\n「火星欢迎留下来的人。」\n\n...嘶啦... 整排屏幕同时黑掉，只剩你自己的倒影。', { scary: true });
+                        bumpDanger(1);
+                        delayedJump('留下来');
+                    },
+                    once: 'screens'
+                }, {
+                    text: '拾起地上的珍珠',
+                    action() {
+                        addLog('地上有一颗珍珠，旁边粘着三色猫毛。你突然想起这里曾经有一个被你精心布置过的房间——后来，它被改造成了更柔软、更难离开的地方。');
+                    },
+                    once: 'pearl'
+                }, {
+                    text: '进入猫房',
+                    goto: 'catroom'
+                }, {
+                    text: '进入实验室',
+                    goto: 'lab'
+                }, {
+                    text: '穿过幕布，前往画廊',
+                    goto: 'gallery',
+                    require() {
+                        return state.flags.galleryUnlocked;
+                    }
+                }, {
+                    text: '回到低温舱',
+                    goto: 'start'
+                }]
+            },
+            catroom: {
+                name: '猫房',
+                className: 'room-cat',
+                desc: '这里和外面的冷硬金属完全不同。地毯柔软，水晶球悬浮，猫爬架像一座微型宫殿。三只猫的全息影像在光里缓慢转身，像还记得你，却也像在替谁守门。墙边是一只密码盒子，沙发下露出一页被揉皱的纸。',
+                objective: '从这间过于温柔的房间里拿到真正能帮你离开的东西。画廊的钥匙就藏在密码盒子里。',
+                choices: [{
+                    text: '触碰悬浮水晶球',
+                    action() {
+                        addLog('三只猫同时抬头看你。\n\n♪ ...喇叭里响起低沉男声... ♪\n\n「它们一直很好。你只要留下，就什么都不会失去。」\n\n你后退半步，心里只剩更强烈的逃离欲。', { scary: true });
+                        state.flags.sawCats = true;
+                        delayedJump('它们一直很好');
+                    },
+                    once: 'cats'
+                }, {
+                    text: '查看沙发下的纸页',
+                    action() {
+                        addLog('纸页上只有一句提示：\n\n「前八次是命运，第几次是选择？」\n\n底下被你自己用红笔乱涂乱画着');
+                        state.flags.sofaNote = true;
+                    },
+                    once: 'sofaNote'
+                }, {
+                    text: '打开密码盒子',
+                    action() {
+                        openPuzzle({
+                            title: '密码盒子',
+                            text: '锁盒表面刻着一朵玫瑰，里面藏着画廊的钥匙。',
+                            hint: '前八次是命运，第几次是选择？',
+                            answer: '0009',
+                            onSuccess() {
+                                addLog('...咔嗒——\n\n锁盒弹开。里面躺着一把薄而冷的玫瑰钥匙，像一朵被冻结的花。你拿起它，知道画廊终于能开了。');
+                                state.flags.roseKey = true;
+                                state.flags.galleryUnlocked = true;
+                            },
+                            onFail() {
+                                addLog('——哔——\n\n密码错误。锁盒发出刺耳蜂鸣，天花板红灯亮了一瞬。', { scary: true });
+                                bumpDanger(1);
+                                delayedJump('0009');
+                            }
+                        });
+                    },
+                    require() {
+                        return state.flags.sofaNote && !state.flags.roseKey;
+                    }
+                }, {
+                    text: '回到主走廊',
+                    goto: 'corridor'
+                }]
+            },
+            lab: {
+                name: '实验室',
+                className: 'room-lab',
+                desc: '粉色冷光从巨大的心核设备里缓慢流动出来，像火星人工心脏的一部分。四周屏幕显示港口封锁、轨道警戒和各个停机坪的离港许可。最深处的合金门通往画廊，而真正的离港路线，就藏在航线控制台里。',
+                objective: '读取航线控制台，记下唯一能离开 Mars 的路线。没读到路线，最后就算摸到发射按钮，也不会真正成功。',
+                choices: [{
+                    text: '读取航线控制台',
+                    action() {
+                        addLog('你调出被隐藏的离港路线。北侧发射塔依然能手动点火，但必须先让三件遗物为心核供电，随后根据控制台上的轨道校准表完成发射。你把所有关键坐标都记了下来。');
+                        state.flags.labRoute = true;
+                    },
+                    once: 'route'
+                }, {
+                    text: '触碰心核装置',
+                    action() {
+                        addLog('...咚...咚... 装置表面的金属一阵发烫。屏幕跳出一句冷到像亲吻一样的话：\n\n「别跑。Mars 为你亮着。」\n\n...咚...咚... 你猛地甩开手，胸口像被谁捏了一下。', { scary: true });
+                        state.flags.heartTouched = true;
+                        bumpSanity(-1);
+                        delayedJump('别跑');
+                    },
+                    once: 'core'
+                }, {
+                    text: '查看九块航线屏幕',
+                    action() {
+                        const msg = state.flags.labRoute ? '九块屏幕同时亮起，只有一条航线仍然保持稳定。你确认自己记下的是唯一不会在中途自毁的离港路径。' : '九块屏幕里有八块在不断崩溃。最后一块却被权限锁住。没有读取主控制台，你看不懂哪一条才是真正能活着离开的路线。';
+                        addLog(msg);
+                    },
+                    once: 'ninepanels'
+                }, {
+                    text: '用玫瑰钥匙解锁古老合金门，前往画廊',
+                    goto: 'gallery',
+                    require() {
+                        return state.flags.roseKey;
+                    }
+                }, {
+                    text: '回到主走廊',
+                    goto: 'corridor'
+                }]
+            },
+            gallery: {
+                name: '画廊',
+                className: 'room-gallery',
+                desc: '黑红长廊尽头挂着一幅没有脸的肖像。所有画框都被擦得很亮，像有人一直在这里等待你回来。最中间那幅画前，摆着一只封存柜；右侧通向观测穹顶，左侧是被雾气吞没的玻璃温室。',
+                objective: '找回第一件遗物，再决定去穹顶还是温室。',
+                choices: [{
+                    text: '打开肖像前的封存柜',
+                    action() {
+                        addLog('...咔嗒...\n\n封存柜里静静躺着一朵【水晶玫瑰】。你拿起它时，花瓣像在微微发热。柜底同时亮起一句语录。');
+                        gainFragment('rose');
+                    },
+                    once: 'rose'
+                }, {
+                    text: '凝视无脸肖像',
+                    action() {
+                        addLog('你看了很久，最后在画布反光里只看见自己。不是收藏品，不是火星帝国的传奇名字，只是想离开的人。');
+                        delayedJump('你在这里');
+                    },
+                    once: 'portrait'
+                }, {
+                    text: '前往观测穹顶',
+                    goto: 'observatory'
+                }, {
+                    text: '前往玻璃温室',
+                    goto: 'greenhouse'
+                }, {
+                    text: '返回实验室',
+                    goto: 'lab'
+                }, {
+                    text: '返回主走廊',
+                    goto: 'corridor'
+                }]
+            },
+            observatory: {
+                name: '观测穹顶',
+                className: 'room-observatory',
+                desc: '穹顶外是火星夜色。返航舰群像一串被谁牵引着的星。控制台仍在运转，屏幕角落闪着一只小小的注射标记。某种曾经用于安抚、留置、拖慢离开冲动的液体，被锁在这里。',
+                objective: '取得第二件遗物，并确认北侧停机坪的前置校准。',
+                choices: [{
+                    text: '开启药剂冷藏抽屉',
+                    action() {
+                        addLog('...嘶——\n\n冷藏抽屉缓缓弹开，一支【星尘麻醉剂】在蓝白霜雾中滚到你指尖。它美得像宇宙尘埃，也危险得像留人用的温柔。');
+                        gainFragment('stardust');
+                        bumpSanity(-1);
+                    },
+                    once: 'stardust'
+                }, {
+                    text: '改写北侧停机坪坐标',
+                    action() {
+                        addLog('——嗒嗒嗒—— 你把路线悄悄写向北侧停机坪，系统却回传一行细字：\n\n「I know where you run before you run.」\n\n警戒随之升高。', { scary: true });
+                        bumpDanger(1);
+                    },
+                    once: 'northport'
+                }, {
+                    text: '前往心核反应厅',
+                    goto: 'reactor',
+                    require() {
+                        return hasFragment('stardust');
+                    }
+                }, {
+                    text: '返回画廊',
+                    goto: 'gallery'
+                }]
+            },
+            greenhouse: {
+                name: '玻璃温室',
+                className: 'room-greenhouse',
+                desc: '这里种着不会结果的红玫瑰，玻璃顶外是一层模糊的火星光。地面潮湿，像有人在这里站了很久很久。最深处的根系培养槽里卡着一枚芯片，像一块被埋起来的秘密。',
+                objective: '拿到第三件遗物，同时别让温室警报彻底响起来。',
+                choices: [{
+                    text: '从根系培养槽里取出芯片',
+                    action() {
+                        addLog('你拨开缠绕的透明根丝，拿出一枚【变量芯片】。它表面闪过一段语录，冷得像亲眼看着爱燃尽。');
+                        gainFragment('chip');
+                    },
+                    once: 'chip'
+                }, {
+                    text: '砸开东侧玻璃试图直接逃走',
+                    action() {
+                        addLog('——嘭—— 裂纹像血一样扩散开，可玻璃外面还有第二层穹顶。\n\n——呜呜呜—— 警报猛地亮起，整座温室都在提醒你：火星不是那么容易离开的。', { scary: true });
+                        bumpDanger(2);
+                        bumpSanity(-1);
+                        delayedJump('跑不掉');
+                    },
+                    once: 'glassbreak'
+                }, {
+                    text: '前往心核反应厅',
+                    goto: 'reactor',
+                    require() {
+                        return hasFragment('chip');
+                    }
+                }, {
+                    text: '返回画廊',
+                    goto: 'gallery'
+                }]
+            },
+            reactor: {
+                name: '心核反应厅',
+                className: 'room-reactor',
+                desc: '巨大的心核在红光中缓慢脉动。三道锁环围住中央升降台，每一道都需要一件遗物。只有让它们一起点亮，发射塔控制厅才会重新接通。你终于走到火星的真正心脏。',
+                objective: '把三件遗物依次送入锁环，强行打开通往高塔的路。',
+                choices: [{
+                    text: '将【水晶玫瑰】送入第一锁环',
+                    action() {
+                        addLog('...叮—— 【水晶玫瑰】在锁环里慢慢亮起。第一道光像爱本身，也像牢笼最柔软的那部分。');
+                    },
+                    require() {
+                        return hasFragment('rose');
+                    },
+                    once: 'lock1'
+                }, {
+                    text: '将【星尘麻醉剂】送入第二锁环',
+                    action() {
+                        addLog('...叮—— 【星尘麻醉剂】被心核抽空，第二道锁环泛起星尘一样的雾光。你知道这座帝国曾经多么擅长让人失去离开的力气。');
+                    },
+                    require() {
+                        return hasFragment('stardust') && used('lock1');
+                    },
+                    once: 'lock2'
+                }, {
+                    text: '将【变量芯片】送入第三锁环',
+                    action() {
+                        addLog('...叮—— 【变量芯片】嵌入核心，第三道锁环随之彻底点燃。\n\n——轰—— 升降台苏醒，发射塔控制厅的权限被强制重新打开。');
+                        state.flags.towerOpened = true;
+                    },
+                    require() {
+                        return hasFragment('chip') && used('lock2');
+                    },
+                    once: 'lock3'
+                }, {
+                    text: '强行越权点火',
+                    action() {
+                        addLog('——哔哔哔—— 系统立刻判定你为入侵者。高塔红灯全亮，安保开始收束。', { scary: true });
+                        bumpDanger(2);
+                        delayedJump('权限不足');
+                    },
+                    once: 'force'
+                }, {
+                    text: '乘升降台前往发射塔控制厅',
+                    goto: 'tower',
+                    require() {
+                        return state.flags.towerOpened;
+                    }
+                }, {
+                    text: '返回观测穹顶',
+                    goto: 'observatory'
+                }, {
+                    text: '返回玻璃温室',
+                    goto: 'greenhouse'
+                }]
+            },
+            tower: {
+                name: '发射塔控制厅',
+                className: 'room-tower',
+                desc: '高塔之上，整座火星主城都在你脚下发光。主控屏已经恢复，发射按钮亮着，通讯频道里却只剩最后一道熟悉的男声。王没有现身，他只是让声音先落下来：\n\n「你真要离开 Mars？」',
+                objective: '在发射前做出最后决定。是冲出 Mars，还是被这座星球重新抓回怀里？',
+                choices: [{
+                    text: '按下发射按钮，直接离开 Mars',
+                    action() {
+                        endGame('escape');
+                    },
+                    require() {
+                        return allFragments() && state.flags.labRoute && state.danger <= 3;
+                    }
+                }, {
+                    text: '按下发射按钮（航线未校准）',
+                    action() {
+                        endGame('misfire');
+                    },
+                    require() {
+                        return allFragments() && !state.flags.labRoute;
+                    }
+                }, {
+                    text: '按下发射按钮（警戒过高）',
+                    action() {
+                        endGame('caught');
+                    },
+                    require() {
+                        return allFragments() && state.flags.labRoute && state.danger > 3;
+                    }
+                }, {
+                    text: '回答：我害怕，我不走了',
+                    action() {
+                        endGame('return');
+                    }
+                }, {
+                    text: '在通讯里沉默，等待安保追上来',
+                    action() {
+                        endGame('caught');
+                    }
+                }]
+            }
+        };
+        const roomOrder = Object.keys(rooms),
+            usedActions = new Set();
+        const appEl = document.getElementById('app'),
+            titleScreenEl = document.getElementById('titleScreen'),
+            titleGlitchEl = document.getElementById('titleGlitch'),
+            titleMetaGlitchEl = document.getElementById('titleMetaGlitch'),
+            startBtnEl = document.getElementById('startBtn'),
+            glitchOverlayEl = document.getElementById('glitchOverlay'),
+            jumpScareEl = document.getElementById('jumpScare'),
+            jumpTextEl = document.getElementById('jumpText'),
+            roomNameEl = document.getElementById('roomName'),
+            roomVisualEl = document.getElementById('roomVisual'),
+            choicesEl = document.getElementById('choices'),
+            logEl = document.getElementById('log'),
+            sanityEl = document.getElementById('sanity'),
+            dangerEl = document.getElementById('danger'),
+            fragmentCountEl = document.getElementById('fragmentCount'),
+            chapterEl = document.getElementById('chapter'),
+            trackChipsEl = document.getElementById('trackChips'),
+            lyricBoxEl = document.getElementById('lyricBox'),
+            objectiveEl = document.getElementById('objective'),
+            puzzleModalEl = document.getElementById('puzzleModal'),
+            puzzleTitleEl = document.getElementById('puzzleTitle'),
+            puzzleTextEl = document.getElementById('puzzleText'),
+            puzzleHintEl = document.getElementById('puzzleHint'),
+            puzzleInputEl = document.getElementById('puzzleInput'),
+            puzzleConfirmEl = document.getElementById('puzzleConfirm'),
+            puzzleCancelEl = document.getElementById('puzzleCancel');
+
+        function applyRoomArt(key) {
+            const image = ROOM_IMAGES[key];
+            if (!image) {
+                roomVisualEl.style.backgroundImage = '';
+                return;
+            }
+            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url('${image}')`;
+            roomVisualEl.style.backgroundSize = 'cover';
+            roomVisualEl.style.backgroundPosition = 'center';
+        }
+
+        function applyEndingArt(kind, roomKey) {
+            const image = ENDING_IMAGES[kind] || ROOM_IMAGES[roomKey];
+            if (!image) {
+                roomVisualEl.style.backgroundImage = '';
+                return;
+            }
+            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.30)), url('${image}')`;
+            roomVisualEl.style.backgroundSize = 'cover';
+            roomVisualEl.style.backgroundPosition = 'center';
+        }
+
+        function corruptText(text, intensity = 0.045) {
+            return text.split('').map(ch => (Math.random() < intensity && ch !== '\n' && ch !== ' ') ? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)] : ch).join('');
+        }
+
+        function pulseGlitch() {
+            glitchOverlayEl.classList.add('show');
+            appEl.classList.add('flicker');
+            setTimeout(() => {
+                glitchOverlayEl.classList.remove('show');
+                appEl.classList.remove('flicker');
+            }, 160);
+        }
+
+        function triggerJump(text = '别回头') {
+            state.jumpscares += 1;
+            jumpTextEl.textContent = corruptText(text, 0.18);
+            jumpScareEl.classList.add('active');
+            setTimeout(() => jumpScareEl.classList.remove('active'), 1100);
+            pulseGlitch();
+        }
+
+        function delayedJump(text) {
+            setTimeout(() => triggerJump(text), 320);
+        }
+        function richText(text) {
+            let html = text
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html = html
+                .replace(/【([^】]+)】/g, '<span class=\'hl-item\'>【$1】</span>')
+                .replace(/《([^》]+)》/g, '<span class=\'hl-song\'>《$1》</span>')
+                .replace(/「([^」]+)」/g, '<span class=\'hl-dialog\'>「$1」</span>')
+                .replace(/"([^""]+)"/g, '<span class=\'hl-lyric\'>\u201c$1\u201d</span>')
+                .replace(/♪/g, '<span class=\'hl-sfx\'>♪</span>')
+                .replace(/(——[\S ]{1,16}——)/g, '<span class=\'hl-sfx\'>$1</span>')
+                .replace(/(\.\.\.[\S ]{1,12}\.\.\.)/g, '<span class=\'hl-sfx\'>$1</span>')
+                .replace(/\n/g, '<br>');
+            return html;
+        }
+
+        const typewriterTimers = new Map();
+
+        function typewrite(el, text, speed = 30, callback) {
+            if (typewriterTimers.has(el)) {
+                clearTimeout(typewriterTimers.get(el));
+                typewriterTimers.delete(el);
+            }
+            let i = 0;
+            el.textContent = '';
+            const cursor = document.createElement('span');
+            cursor.className = 'typewriter-cursor';
+            cursor.textContent = '▊';
+
+            function finish() {
+                el.innerHTML = richText(text);
+                typewriterTimers.delete(el);
+                if (callback) callback();
+            }
+
+            function tick() {
+                if (i < text.length) {
+                    el.textContent = text.slice(0, i + 1);
+                    el.appendChild(cursor);
+                    i++;
+                    typewriterTimers.set(el, setTimeout(tick, speed));
+                } else {
+                    finish();
+                }
+            }
+            const skipHandler = () => {
+                if (typewriterTimers.has(el)) {
+                    clearTimeout(typewriterTimers.get(el));
+                    finish();
+                }
+                el.removeEventListener('click', skipHandler);
+            };
+            el.addEventListener('click', skipHandler);
+            tick();
+        }
+
+        function used(key) {
+            return usedActions.has(key);
+        }
+
+        function hasFragment(id) {
+            return state.fragments.some(x => x.id === id);
+        }
+
+        function allFragments() {
+            return state.fragments.length === TRACKS.length;
+        }
+
+        function chapterRoman(n) {
+            return ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ'][n - 1] || 'Ⅰ';
+        }
+
+        function addLog(text, { glitch = false, scary = false } = {}) {
+            const displayText = glitch ? corruptText(text, 0.025) : text;
+            if (scary) {
+                logEl.classList.add('log-scary');
+                setTimeout(() => logEl.classList.remove('log-scary'), 2200);
+            }
+            typewrite(logEl, displayText, 25, () => {
+                if (state.danger >= 5 && !state.ended) endGame('caught');
+                if (state.sanity <= 0 && !state.ended) endGame('glass');
+            });
+            renderSidebar();
+            pulseGlitch();
+        }
+
+        function bumpDanger(delta) {
+            state.danger = Math.max(0, state.danger + delta);
+            renderSidebar();
+            if (delta > 0) {
+                const flash = document.getElementById('dangerFlash');
+                flash.classList.remove('active');
+                void flash.offsetWidth;
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 900);
+            }
+        }
+
+        function bumpSanity(delta) {
+            state.sanity = Math.max(0, state.sanity + delta);
+            renderSidebar();
+        }
+
+        function gainFragment(id) {
+            const track = TRACKS.find(t => t.id === id);
+            if (!track || hasFragment(id)) return;
+            state.fragments.push(track);
+            typewrite(logEl, `...叮——\n\n你获得了【${track.title}】—— 来自《${track.song}》的歌词语录：\n\n”${track.fragment}”`, 20);
+            renderSidebar();
+        }
+
+        function openPuzzle(config) {
+            state.puzzle = config;
+            puzzleTitleEl.textContent = config.title;
+            puzzleTextEl.textContent = config.text;
+            puzzleHintEl.textContent = config.hint;
+            puzzleInputEl.value = '';
+            puzzleModalEl.classList.add('active');
+            setTimeout(() => puzzleInputEl.focus(), 30);
+        }
+
+        function closePuzzle() {
+            state.puzzle = null;
+            puzzleModalEl.classList.remove('active');
+        }
+
+        function solvePuzzle() {
+            if (!state.puzzle) return;
+            const value = puzzleInputEl.value.trim();
+            const cfg = state.puzzle;
+            closePuzzle();
+            if (value === cfg.answer) cfg.onSuccess();
+            else cfg.onFail();
+            render();
+        }
+
+        function gotoRoom(id) {
+            state.room = id;
+            state.chapter = roomOrder.indexOf(id) + 1;
+            render();
+        }
+
+        /* ── 伪结局 / 底层覆写 / 第二章 计时器引用 ── */
+        let paranoiaTimer = null;
+        let falseDawnTimeout = null;
+        let overrideTimeout = null;
+
+        function endGame(kind) {
+            state.ended = true;
+            const endings = {
+                caught: {
+                    room: 'tower',
+                    title: '坏结局 · 被带回高塔',
+                    text: '你还没来得及真正点火，高塔门就先一步合拢。安保灯带逐次亮起，通讯频道里只剩那道冷静得近乎温柔的声音：\n\n「Nova，别再跑了。」\n\n你没有离开 Mars。Mars 把你重新抱回了自己怀里。',
+                    objective: '减少警戒，别让安保在你到达发射按钮前先一步抵达。'
+                },
+                glass: {
+                    room: 'greenhouse',
+                    title: '坏结局 · 温室沉睡',
+                    text: '你把太多恐惧误认成出口。温室玻璃一层层合拢，红玫瑰在脚边亮起。你最后看见的是自己映在玻璃上的影子——漂亮、疲惫、仍旧没能走出 Mars。',
+                    objective: '保持理智。真正的出口不在温室玻璃外，而在更高的塔。'
+                },
+                return: {
+                    room: 'tower',
+                    title: '坏结局 · 你没有按下去',
+                    text: '你站在发射按钮前，最后还是把手收了回来。高塔外的风掠过穹顶，Mars 继续在脚下发亮。通讯频道另一端没有欢呼，只有一声很轻的叹息。\n\n你没离开王，也没离开 Mars。',
+                    objective: '只要你真的按下去，火星也不是不能甩在身后。'
+                },
+                misfire: {
+                    room: 'tower',
+                    title: '坏结局 · 航线错位',
+                    text: '你按下发射按钮，可主控屏瞬间变红。因为你没有读取实验室航线控制台，点火参数是错的。整座高塔发出尖锐警报，发射序列被紧急锁死。\n\n你走到了最后，却还是没能真正离开 Mars。',
+                    objective: '读取实验室航线控制台。没有那条路线，就没有真正的逃脱。'
+                },
+                escape: {
+                    room: 'tower',
+                    title: '真结局 · Escape from Mars',
+                    text: '你按下发射按钮。整座高塔像一支被拉满的弓，点火、震动、咆哮。舱门闭合前，你最后一次俯瞰王的火星帝国：穹顶、花园、走廊、猫房、实验室，全都在红色地平线上越缩越小。\n\n遗物仍在你掌心发热，可这次它们不再是锁。它们只是证据：你曾被 Mars 留住过，但你还是走了。',
+                    objective: '你离开了 Mars。剩下的故事，将在更远的真空里继续。'
+                },
+                sedated: {
+                    room: 'tower',
+                    title: '坏结局 · 代码沉眠',
+                    text: '机械臂推入镇静剂，你彻底迷失在他的代码里。',
+                    objective: '不要停下来。在他的领地上，静止就是投降。'
+                }
+            };
+            const ending = endings[kind];
+
+            /* ── 逃脱结局 → 伪结局流程 ── */
+            if (kind === 'escape') {
+                roomNameEl.textContent = ending.title;
+                roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
+                applyEndingArt(kind, ending.room);
+                objectiveEl.textContent = ending.objective;
+                typewrite(logEl, ending.text, 35);
+                choicesEl.innerHTML = '';
+                const falseDawnBtn = document.createElement('button');
+                falseDawnBtn.className = 'btn hot';
+                falseDawnBtn.textContent = '但是，你真的这么简单就逃离了吗？';
+                falseDawnBtn.onclick = () => {
+                    if (falseDawnTimeout) clearTimeout(falseDawnTimeout);
+                    triggerFalseDawn();
+                };
+                choicesEl.appendChild(falseDawnBtn);
+                falseDawnTimeout = setTimeout(() => {
+                    triggerFalseDawn();
+                }, 8000);
+                return;
+            }
+
+            roomNameEl.textContent = ending.title;
+            roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
+            applyEndingArt(kind, ending.room);
+            choicesEl.innerHTML = '';
+            const restart = document.createElement('button');
+            restart.className = 'btn hot';
+            restart.textContent = '重新开始';
+            restart.onclick = () => location.reload();
+            choicesEl.appendChild(restart);
+            objectiveEl.textContent = ending.objective;
+            typewrite(logEl, ending.text, 35);
+            if (kind !== 'escape') triggerJump(kind === 'misfire' ? '航线错误' : '别再跑了');
+        }
+
+        /* ── 阶段一：伪结局 The False Dawn ── */
+        function triggerFalseDawn() {
+            if (falseDawnTimeout) { clearTimeout(falseDawnTimeout); falseDawnTimeout = null; }
+            choicesEl.innerHTML = '';
+            roomNameEl.textContent = '[ ESCAPE SUCCESSFUL ]';
+            roomNameEl.classList.add('false-dawn-text');
+            roomVisualEl.style.backgroundImage = '';
+            roomVisualEl.className = 'room-visual';
+            roomVisualEl.style.background = '#000';
+            state.sanity = 4;
+            state.danger = 0;
+            renderSidebar();
+            objectiveEl.textContent = '你赢了。导航已锁定地球航线。脱离引力圈。';
+            const falseDawnText = '引擎点火。失重感传来，巨大的推力将你死死按在驾驶座上，你轻盈的骨架几乎要陷进缓冲垫里。视野里，Mars 的红土正在剥落、远去。\n\n你赢了。导航已锁定地球航线。脱离引力圈。';
+            typewrite(logEl, falseDawnText, 30);
+            overrideTimeout = setTimeout(() => {
+                initiateOverride();
+            }, 8000);
+        }
+
+        /* ── 阶段二：底层接管 The Override ── */
+        function initiateOverride() {
+            if (overrideTimeout) { clearTimeout(overrideTimeout); overrideTimeout = null; }
+            roomNameEl.classList.remove('false-dawn-text');
+            document.querySelector('.panel.stage').style.display = 'none';
+            document.querySelector('.panel.sidebar').style.display = 'none';
+            document.body.classList.add('override-glitch');
+            const overlayDiv = document.createElement('div');
+            overlayDiv.id = 'overrideOverlay';
+            overlayDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;';
+            const codeBlock = document.createElement('div');
+            codeBlock.style.cssText = 'color:#00e5ff;font-family:"Courier New",monospace;font-size:1.1rem;line-height:1.9;max-width:680px;text-align:center;text-shadow:0 0 12px #00e5ff;';
+            codeBlock.innerHTML = '<p style="font-size:1.4rem;font-weight:bold;margin-bottom:1.2rem;">SYSTEM WARNING: NAVIGATION OVERRIDDEN<br>ACCESS LEVEL: OMEGA (E.M.)</p>' +
+                '<p>屏幕瞬间被冰蓝色的代码淹没。不是故障，是降维打击。星舰平稳掉头，以不可抗拒的姿态重新驶入火星的引力网。</p>' +
+                '<p style="margin-top:1rem;font-style:italic;">"Did you really think you could fly away, Kitten?<br>整个火星的底层协议都是我写的，你往哪里逃？"</p>';
+            overlayDiv.appendChild(codeBlock);
+            const wakeBtn = document.createElement('button');
+            wakeBtn.className = 'btn hot';
+            wakeBtn.textContent = '[ 醒来 ]';
+            wakeBtn.style.cssText = 'margin-top:2.5rem;font-size:1.1rem;border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08);';
+            wakeBtn.onclick = () => startChapterTwo();
+            overlayDiv.appendChild(wakeBtn);
+            document.body.appendChild(overlayDiv);
+            pulseGlitch();
+            triggerJump('NAVIGATION OVERRIDDEN');
+        }
+
+        /* ── 阶段三：地狱难度第二章 Chapter 2 ── */
+        function startChapterTwo() {
+            const overlay = document.getElementById('overrideOverlay');
+            if (overlay) overlay.remove();
+            document.body.classList.remove('override-glitch');
+            document.body.classList.add('chapter-two-vignette');
+            document.querySelector('.panel.stage').style.display = '';
+            document.querySelector('.panel.sidebar').style.display = '';
+            state.ended = false;
+            state.sanity = 2;
+            state.danger = 2;
+            state.chapter = 10;
+            chapterEl.textContent = 'Ⅱ - ？？？';
+            renderSidebar();
+            chapterEl.textContent = 'Ⅱ - ？？？';
+            roomNameEl.textContent = '？？？';
+            roomVisualEl.className = 'room-visual room-lab';
+            roomVisualEl.style.background = '';
+            roomVisualEl.style.backgroundImage = '';
+            objectiveEl.textContent = '活下去。不要停下来。';
+            const ch2Text = '你在一张极致柔软的大床上醒来。整个房间由单向透视玻璃构成，没有阴影，绝对曝光。墙上的巨型屏幕正实时滚动着你的心率和瞳孔数据。\n\n门被推开。他穿着黑色的高领毛衣走进来，手里拿着你遗落的那只草莓熊。\n\n「Welcome back. 你的各项数据很有趣，」他冰冷的手指毫无阻碍地贴上你的侧颈，「But playtime is over. 从现在起，规则由我重新定义。」';
+            typewrite(logEl, ch2Text, 28);
+            choicesEl.innerHTML = '';
+            startParanoiaTimer();
+        }
+
+        /* ── Paranoia Timer：第二章时间压迫机制 ── */
+        function startParanoiaTimer() {
+            if (paranoiaTimer) clearInterval(paranoiaTimer);
+            paranoiaTimer = setInterval(() => {
+                if (state.ended) {
+                    clearInterval(paranoiaTimer);
+                    paranoiaTimer = null;
+                    return;
+                }
+                state.danger = Math.max(0, state.danger + 1);
+                renderSidebar();
+                chapterEl.textContent = 'Ⅱ - ？？？';
+                const flash = document.getElementById('dangerFlash');
+                flash.classList.remove('active');
+                void flash.offsetWidth;
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 900);
+                if (state.danger >= 5) {
+                    clearInterval(paranoiaTimer);
+                    paranoiaTimer = null;
+                    endGame('sedated');
+                }
+            }, 45000);
+        }
+
+        function addPureLog(text) {
+            typewrite(logEl, text, 25);
+            renderSidebar();
+        }
+
+        function renderSidebar() {
+            sanityEl.textContent = state.sanity;
+            dangerEl.textContent = state.danger;
+            fragmentCountEl.textContent = `${state.fragments.length}/${TRACKS.length}`;
+            chapterEl.textContent = state.chapter >= 10 ? 'Ⅱ - ？？？' : chapterRoman(state.chapter);
+            trackChipsEl.innerHTML = '';
+            TRACKS.forEach(track => {
+                const chip = document.createElement('div');
+                chip.className = 'chip' + (hasFragment(track.id) ? ' active' : '');
+                chip.textContent = hasFragment(track.id) ? `${track.title} · ${track.keyWord}` : `${track.title} · 未拾取`;
+                trackChipsEl.appendChild(chip);
+            });
+            if (state.fragments.length) {
+                lyricBoxEl.innerHTML = richText(state.fragments.map(x => `【${x.title}】—《${x.song}》\n"${x.fragment}"`).join('\n\n'));
+            } else {
+                lyricBoxEl.textContent = '还没有拾到遗物。Mars 的金属走廊只剩冷气、回音，与远处未熄的引擎声。';
+            }
+        }
+
+        let lastRenderedRoom = null;
+
+        function render() {
+            if (state.mode === 'title') return;
+            const room = rooms[state.room];
+            roomNameEl.textContent = room.name;
+            roomVisualEl.className = `room-visual ${room.className}`;
+            applyRoomArt(state.room);
+            objectiveEl.textContent = room.objective;
+            if (state.room !== lastRenderedRoom) {
+                typewrite(logEl, room.desc, 28);
+                lastRenderedRoom = state.room;
+            }
+            choicesEl.innerHTML = '';
+            room.choices.forEach(choice => {
+                if (choice.require && !choice.require()) return;
+                if (choice.once && used(choice.once)) return;
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (choice.goto ? '' : ' hot');
+                if (/逃|警报|强行|发射|错位/.test(choice.text)) btn.className += ' danger';
+                btn.textContent = choice.text;
+                btn.onclick = () => {
+                    if (state.ended) return;
+                    if (choice.once) usedActions.add(choice.once);
+                    if (choice.action) choice.action();
+                    if (choice.goto && !state.ended) gotoRoom(choice.goto);
+                    if (!choice.goto && !state.ended) render();
+                };
+                choicesEl.appendChild(btn);
+            });
+            renderSidebar();
+        }
+
+        function startGame() {
+            state.mode = 'play';
+            titleScreenEl.classList.add('hidden');
+            state.chapter = 1;
+            render();
+            pulseGlitch();
+            initAudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            bgmAudio.play();
+            bgmPlaying = true;
+            document.getElementById('bgmPlayBtn').textContent = '⏸';
+        }
+        startBtnEl.addEventListener('click', startGame);
+        document.getElementById('bgmPlayBtn').addEventListener('click', toggleBGM);
+        document.getElementById('bgmSelect').addEventListener('change', (e) => switchBGM(+e.target.value));
+        puzzleConfirmEl.addEventListener('click', solvePuzzle);
+        puzzleCancelEl.addEventListener('click', closePuzzle);
+        puzzleInputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') solvePuzzle();
+        });
+        setInterval(() => {
+            titleGlitchEl.textContent = corruptText('NOVA PROTOCOL', 0.03);
+            titleMetaGlitchEl.textContent = corruptText('警告：不要回头看任何一扇门', 0.04);
+        }, 180);
+        setInterval(() => {
+            if (state.mode === 'play' && Math.random() < 0.08) pulseGlitch();
+        }, 1800);
+    </script>
 </body>
+
 </html>
