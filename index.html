@@ -861,7 +861,7 @@
             <h1 class="title-glow" id="titleGlitch">NOVA PROTOCOL</h1>
             <div class="title-sub">E S C A P E &nbsp; F R O M &nbsp; M A R S</div><button class="title-btn" id="startBtn">[ 醒 来 ]</button>
             <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-                <button class="title-btn" id="startCh2Btn" style="font-size:0.8rem;padding:6px 18px;opacity:0.7;">[ 直接进入第二章 ]</button>
+                <button class="title-btn" id="startCh2Btn" style="font-size:0.8rem;padding:6px 18px;opacity:0.7;">[ 章节选择：Ⅱ ]</button>
             </div>
             <div class="title-meta">
                 <div>目标：离开王，离开 Mars</div>
@@ -1788,7 +1788,7 @@
             /* 线索汇总 */
             const collected = items.filter(i => state.flags[i.key]);
             if (collected.length) {
-                lyricBoxEl.innerHTML = richText('【第二关线索】\n' + collected.map(i => `· ${i.label}`).join('\n'));
+                lyricBoxEl.innerHTML = richText('【线索】\n' + collected.map(i => `· ${i.label}`).join('\n'));
             } else {
                 lyricBoxEl.textContent = '还没有找到任何线索。他的规则正在你周围成形。';
             }
@@ -1942,7 +1942,7 @@
             triggerJump('NAVIGATION OVERRIDDEN');
         }
 
-        /* ── 阶段三：第二关，只接在现有页面后面，不动前面的内容 ── */
+        /* ── 阶段三：Chapter 2，只接在现有页面后面，不动前面的内容 ── */
         function startChapterTwo() {
             const overlay = document.getElementById('overrideOverlay');
             if (overlay) overlay.remove();
@@ -2002,17 +2002,39 @@
                 {
                     text: '趁他靠近时，偷看腕表权限层级',
                     action() {
-                        addLog('你抬眼的瞬间，腕表屏幕反光里掠过一行字：\n\nE.M. // CORE REACTOR // MANUAL KEY REQUIRED\n\n你没有拿到钥匙，但你知道钥匙确实存在。');
-                        chapterTwoCurrentScene = 'bedroom';
-                        renderChapterTwoBedroomChoices();
+                        clearChapterTwoTimer();
+                        state.ended = true;
+                        const vig = document.getElementById('ch2Vignette');
+                        if (vig) vig.remove();
+                        roomNameEl.textContent = '永恒同步';
+                        objectiveEl.textContent = '你以为自己暴露了。其实，你只是主动把灵魂又往王的高塔里多塞了一层。';
+                        choicesEl.innerHTML = '';
+                        const restart = document.createElement('button');
+                        restart.className = 'btn hot';
+                        restart.textContent = '重新开始';
+                        restart.onclick = () => location.reload();
+                        choicesEl.appendChild(restart);
+                        typewrite(logEl, '你趁他冰冷的手指贴上你侧颈的瞬间，飞快瞥向他的腕表。\n屏幕上跳动的不是权限层级……\n而是一行血红的代码：\n\n「THRALL_PRIORITY: ∞」\n「PERMISSION: NEVER_LEAVE_MARS」\n「HEARTBEAT_SYNC: ACTIVE」\n\n王的目光瞬间锁死在你脸上。\n他没有生气，反而轻轻笑了一声——那是低沉的、带着电流的笑。\n\n「偷看？……有趣。」\n\n他把腕表直接按到你眼前，手指扣住你的手腕，像在给你戴上一枚永不摘下的戒指。\n\n「看清楚了？这是我为你写的权限。\n从现在起，你的心跳和我同步。\n想逃？可以。\n但每一次心跳，都会把我拉得更近。」\n\n玻璃门「咔」地重新上锁。\n电流回落的声音像心跳。\n他没有走，反而坐到床边，把草莓熊塞回你怀里，声音低得发颤：\n\n「规则由我重新定义……包括你偷看的这一秒，也变成了我爱你的证据。」', 30);
+                        triggerJump('HEARTBEAT_SYNC');
                     }
                 },
                 {
                     text: '抓住草莓熊不松手，迫使他留下更久',
                     action() {
-                        addLog('他的视线落在你手里的草莓熊上，短暂沉默后只说了一句：\n\n「别把它也弄丢。」\n\n门合上的那一刻，床头下方有一小片纸角露了出来。');
-                        chapterTwoCurrentScene = 'bedroom';
-                        renderChapterTwoBedroomChoices();
+                        clearChapterTwoTimer();
+                        state.ended = true;
+                        const vig = document.getElementById('ch2Vignette');
+                        if (vig) vig.remove();
+                        roomNameEl.textContent = '永恒囚笼';
+                        objectiveEl.textContent = '你以为你成功留住了他。其实，是他早就决定——这一生都要把你锁在身边。';
+                        choicesEl.innerHTML = '';
+                        const restart = document.createElement('button');
+                        restart.className = 'btn hot';
+                        restart.textContent = '重新开始';
+                        restart.onclick = () => location.reload();
+                        choicesEl.appendChild(restart);
+                        typewrite(logEl, '你死死抓住草莓熊，不肯松手。\n王的身体明显僵了一下。\n他低头看着你握住熊的手指，眼神从冰冷瞬间变成……近乎贪婪的温柔。\n\n「还想让我多留一会儿？」\n\n他没有抽走熊，反而俯身下来，把整个上半身笼罩在你上方。\n黑色的毛衣领口蹭到你的脸颊，带着火星夜晚的寒冷和他的体温。\n\n「好啊……那就留下。」\n\n他把草莓熊轻轻放在你们中间，像在你们之间筑起一道小小的堡垒。\n\n「从今天起，规则变了。\n不是你逃离我，\n而是我陪你……直到你再也离不开火星。」\n\n他冰冷的手指顺着你的颈侧滑到后脑，轻轻按住，像在确认你是不是真的属于他。\n\n「玩闹时间结束了。\n现在，开始我们的永远。」\n\n玻璃门缓缓上锁，电流回落的声音像婚礼的钟声。', 30);
+                        triggerJump('永远');
                     }
                 }
             ];
@@ -2022,7 +2044,7 @@
         function renderChapterTwoBedroomChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'bedroom';
-            roomNameEl.textContent = '第二关 · 玻璃房';
+            roomNameEl.textContent = '玻璃房';
             objectiveEl.textContent = '搜刮线索，找到离开这间绝对曝光的房间的方法。';
             choicesEl.innerHTML = '';
             const choices = [
@@ -2041,7 +2063,7 @@
                     require: () => !state.flags.chapterTwoVoiceprint,
                     action() {
                         state.flags.chapterTwoVoiceprint = true;
-                        addLog('玻璃后的采集器被你的声音惊醒。几秒后，屏幕自动生成一段伪造的声纹样本。\n\n你忽然明白：第二关不需要真正的自由，它只要求输入一段”像你”的声音。');
+                        addLog('玻璃后的采集器被你的声音惊醒。几秒后，屏幕自动生成一段伪造的声纹样本。\n\n你忽然明白：这里不需要真正的自由，它只要求输入一段”像你”的声音。');
                         renderChapterTwoSidebar();
                         renderChapterTwoBedroomChoices();
                     }
@@ -2090,7 +2112,7 @@
         function renderChapterTwoReactorHallChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'reactorHall';
-            roomNameEl.textContent = '第二关 · 反应堆走廊';
+            roomNameEl.textContent = '反应堆走廊';
             objectiveEl.textContent = '找到反应堆钥匙，让旧协议真正有执行条件。';
             clearRoomArtForChapterTwo();
             choicesEl.innerHTML = '';
@@ -2145,7 +2167,7 @@
         function renderChapterTwoDarkCorridorChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'darkCorridor';
-            roomNameEl.textContent = '第二关 · 暗红走廊';
+            roomNameEl.textContent = '暗红走廊';
             clearRoomArtForChapterTwo();
             objectiveEl.textContent = '走廊分三岔：左边是反应堆，右边是数据穹顶，尽头是一扇不应该打开的门。';
             choicesEl.innerHTML = '';
@@ -2218,7 +2240,7 @@
         function renderChapterTwoThroneRoomChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'throneRoom';
-            roomNameEl.textContent = '第二关 · 王的起居室';
+            roomNameEl.textContent = '王的起居室';
             clearRoomArtForChapterTwo();
             objectiveEl.textContent = '你闯入了他的私人领地。每多待一秒，风险就多一分。';
             choicesEl.innerHTML = '';
@@ -2290,7 +2312,7 @@
         function renderChapterTwoDataVaultChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'dataVault';
-            roomNameEl.textContent = '第二关 · 数据穹顶';
+            roomNameEl.textContent = '数据穹顶';
             clearRoomArtForChapterTwo();
             objectiveEl.textContent = '这里存放着你被遗忘的数据。取走记忆芯片，但代价是看见自己不想看见的东西。';
             choicesEl.innerHTML = '';
@@ -2352,7 +2374,7 @@
         function renderChapterTwoWhisperVoidChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'whisperVoid';
-            roomNameEl.textContent = '第二关 · 低语深渊';
+            roomNameEl.textContent = '低语深渊';
             clearRoomArtForChapterTwo();
             objectiveEl.textContent = '黑暗中只有他的声音。找到破绽，或者被永远吞没。';
             choicesEl.innerHTML = '';
@@ -2425,7 +2447,7 @@
         function renderChapterTwoFleshForgeChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'fleshForge';
-            roomNameEl.textContent = '第二关 · 血肉熔炉';
+            roomNameEl.textContent = '血肉熔炉';
             clearRoomArtForChapterTwo();
             objectiveEl.textContent = '王的禁地。拿到碎片，或者被永远锻入他的系统。';
             choicesEl.innerHTML = '';
@@ -2506,11 +2528,10 @@
         function renderChapterTwoConsoleChoices() {
             resetChapterTwoTimer();
             chapterTwoCurrentScene = 'console';
-            roomNameEl.textContent = '第二关 · 主控制台';
+            roomNameEl.textContent = '主控制台';
             clearRoomArtForChapterTwo();
             const hasAllBase = state.flags.chapterTwoProtocolSheet && state.flags.chapterTwoVoiceprint && state.flags.chapterTwoCoreOpen && state.flags.chapterTwoNorthRoute;
-            const hasExtra = state.flags.ch2MemoryChip || state.flags.ch2OverrideCode || state.flags.ch2FleshShard;
-            objectiveEl.textContent = hasAllBase && hasExtra ? '所有条件已满足。执行覆写。' : '收集全部条件后才能执行覆写。你可能还需要更深层的访问凭证。';
+            objectiveEl.textContent = hasAllBase ? '所有条件已满足。执行覆写。' : '收集全部条件后才能执行覆写。';
             choicesEl.innerHTML = '';
             if (!state.flags.ch2ConsoleVisited) {
                 state.flags.ch2ConsoleVisited = true;
@@ -2519,25 +2540,12 @@
             const choices = [
                 {
                     text: '执行覆写：声纹 → 航线 → 钥匙 → 注入凭证',
-                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase && hasExtra,
+                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase,
                     action() {
                         state.flags.chapterTwoExitOpen = true;
-                        const method = state.flags.ch2FleshShard
-                            ? '系统核心碎片插入主槽——他的骨头反噬了他自己的身体。熔炉里锻造的东西，最终碎裂了锻造者。'
-                            : state.flags.ch2OverrideCode
-                            ? '覆写密码注入底层——他写的规则正在被他自己的代码击穿。'
-                            : '记忆芯片数据涌入系统——你用他保存的"你"覆盖了他定义的"你"。';
-                        addLog('控制台逐层验证：\n\nVOICE SAMPLE ......... ACCEPTED\nNORTH ROUTE .......... REMAPPED\nMANUAL KEY ........... ACCEPTED\nOVERRIDE CREDENTIAL .. ACCEPTED\n\n' + method + '\n\n——轰——\n\n你听见很远的地方传来门锁松开的声音。不止一扇。是所有的门。');
+                        addLog('控制台逐层验证：\n\nVOICE SAMPLE ......... ACCEPTED\nNORTH ROUTE .......... REMAPPED\nMANUAL KEY ........... ACCEPTED\nOVERRIDE CREDENTIAL .. ACCEPTED\n\n旧协议覆盖了新规则。他的系统正在被他自己的代码击穿。\n\n——轰——\n\n你听见很远的地方传来门锁松开的声音。不止一扇。是所有的门。');
                         pulseGlitch();
                         renderChapterTwoSidebar();
-                        renderChapterTwoConsoleChoices();
-                    }
-                },
-                {
-                    text: '输入基础协议（缺少关键凭证）',
-                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase && !hasExtra,
-                    action() {
-                        addLog('系统接受了前三项输入，但最后一道锁没有松开。\n\n屏幕提示：\n\n「INSUFFICIENT OVERRIDE AUTHORITY」\n「需要更深层的访问凭证：记忆芯片 / 覆写密码 / 系统核心碎片」\n\n数据穹顶、起居室或血肉熔炉里也许还有答案。');
                         renderChapterTwoConsoleChoices();
                     }
                 },
@@ -2553,7 +2561,7 @@
                     }
                 },
                 {
-                    text: '沿着解锁的通道，离开第二关',
+                    text: '沿着解锁的通道，离开',
                     require: () => state.flags.chapterTwoExitOpen,
                     action() {
                         endGame('chapterTwoEscape');
@@ -2710,6 +2718,7 @@
         document.getElementById('startCh2Btn').addEventListener('click', startChapterTwoDirectly);
         document.getElementById('bgmPlayBtn').addEventListener('click', toggleBGM);
         document.getElementById('bgmSelect').addEventListener('change', (e) => switchBGM(+e.target.value));
+        document.getElementById('bgmMode').addEventListener('change', (e) => { bgmPlayMode = e.target.value; });
         puzzleConfirmEl.addEventListener('click', solvePuzzle);
         puzzleCancelEl.addEventListener('click', closePuzzle);
         puzzleInputEl.addEventListener('keydown', (e) => {
