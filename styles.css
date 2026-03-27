@@ -1,0 +1,111 @@
+/* 虚假的通关提示 */
+.false-dawn-text {
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  text-shadow: 0 0 10px #00ff00;
+  transition: opacity 2s ease-in;
+}
+
+/* 强行接管的故障动效 (Glitch) */
+.override-glitch {
+  animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+  color: #00e5ff; /* 属于他的冰蓝色 */
+  background: #000;
+}
+
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(-20deg); text-shadow: 2px 2px #ff0000, -2px -2px #00e5ff; }
+  40% { transform: skew(20deg); text-shadow: -2px 2px #ff0000, 2px -2px #00e5ff; }
+  60% { transform: skew(0deg); text-shadow: none; }
+  80% { transform: skew(5deg); }
+  100% { transform: skew(0deg); }
+}
+
+/* 屏幕四周的暗红压迫感 - 第二章专用 */
+.chapter-two-vignette {
+  box-shadow: inset 0 0 150px rgba(139, 0, 0, 0.8);
+  pointer-events: none; /* 让玩家无法点击边缘区域，增加无力感 */
+}
+// 假设这是玩家点击【逃离火星】按钮触发的函数
+function triggerEscapeSequence() {
+    // 1. 虚假的安全感
+    document.getElementById("game-text").innerHTML = `
+        <div class="false-dawn-text">
+            <h3>[ ESCAPE SUCCESSFUL ]</h3>
+            <p>引擎点火。失重感传来，巨大的推力将你死死按在驾驶座上，你轻盈的骨架几乎要陷进缓冲垫里。视野里，Mars的红土正在剥落、远去。</p>
+            <p>你赢了。导航已锁定地球航线。脱离引力圈。</p>
+        </div>
+    `;
+    updateStats({ sanity: 4, alert: 0 }); // 假装状态回满
+
+    // 2. 玩家以为结束了，突然在 8 秒后强行接管
+    setTimeout(() => {
+        initiateOverride();
+    }, 8000); 
+}
+
+function initiateOverride() {
+    // 屏蔽玩家操作，改变UI
+    document.body.classList.add("override-glitch");
+    let uiContainer = document.getElementById("ui-container"); // 你的UI面板ID
+    uiContainer.style.display = "none"; // 隐藏原本的UI面板
+    
+    // 播放刺耳的电流声或切换恐怖BGM (你需要自己替换音频路径)
+    // playAudio("bgm_glitch.mp3"); 
+
+    document.getElementById("game-text").innerHTML = `
+        <div style="color: #00e5ff; font-family: monospace;">
+            <p>SYSTEM WARNING: NAVIGATION OVERRIDDEN</p>
+            <p>ACCESS LEVEL: OMEGA (E.M.)</p>
+            <br>
+            <p>屏幕瞬间被冰蓝色的代码淹没。不是故障，是降维打击。星舰平稳掉头，以不可抗拒的姿态重新驶入火星的引力网。</p>
+            <p>控制台扬声器里传来轻微的电流声，接着是他低沉、带点沙哑的嗓音，带着一种令人绝望的从容：</p>
+            <p><i>"Did you really think you could fly away, Kitten? 整个火星的底层协议都是我写的，你往哪里逃？"</i></p>
+            <p>失重感变成了急剧下坠的失控感。你的指尖冷得发麻，胃里一阵痉挛。逃跑只是他允许的一场演算。你永远也飞不出他的掌心。一种窒息的恐惧缠绕上来，伴随着一丝连你自己都觉得可耻的……尘埃落定的松懈。</p>
+            <br>
+            <button onclick="startChapterTwo()" style="border: 1px solid #00e5ff; background: transparent; color: #00e5ff; padding: 10px;">[ 醒来 ]</button>
+        </div>
+    `;
+}
+
+// 3. 难度暴增的第二章开局
+function startChapterTwo() {
+    document.body.classList.remove("override-glitch");
+    document.body.classList.add("chapter-two-vignette"); // 加上暗红色的边缘压迫
+    
+    // 强制锁死理智上限，增加游戏难度
+    let maxSanity = 2; // 原本是4，现在只有2，玩家走错一步就会死
+    let currentSanity = 2;
+    let alertness = 2; // 开局就带着极高的警戒值
+
+    // 恢复UI显示，但更新为第二章的恶劣状态
+    document.getElementById("ui-container").style.display = "block";
+    updateStatsUI(currentSanity, alertness, "Ⅱ - 薛定谔的猫房");
+
+    document.getElementById("game-text").innerHTML = `
+        <h3># 关卡 Ⅱ：绝对全景监狱</h3>
+        <p>你在一张极致柔软的大床上醒来。没有锁链，没有手铐，但整个房间由单向透视玻璃构成。没有任何阴影，绝对的曝光。</p>
+        <p>墙上的巨型屏幕正实时滚动着你的心率、体温和瞳孔扩张数据。你所有的恐惧都被量化成了他眼里的代码。</p>
+        <p>门被推开。他穿着黑色的高领毛衣走进来，指骨分明的手里拿着你遗落的那只草莓熊。他走到床边，居高临下地看着你因为本能而战栗的身体。</p>
+        <p><i>"Welcome back. 你的各项数据很有趣，尤其是刚才你以为自己逃脱时的心率峰值。"</i> 他俯下身，冰冷的手指毫无阻碍地贴上你的侧颈，感受着那里的脉动，<i>"But playtime is over. 从现在起，规则由我重新定义。"</i></p>
+        <br>
+        <p style="color: red; font-size: 0.9em;">[ 系统警告：理智值上限已强制修改为 2。暴露在强光监控下，每停留 30 秒，警戒值自动增加 1。 ]</p>
+    `;
+
+    // 难度机制：开启倒计时，玩家如果不快速行动就会直接GameOver
+    startParanoiaTimer();
+}
+
+let paranoiaInterval;
+function startParanoiaTimer() {
+    paranoiaInterval = setInterval(() => {
+        // 假设有个全局变量 currentAlert
+        currentAlert += 1;
+        updateAlertUI(currentAlert);
+        if (currentAlert >= 5) { // 警戒值爆表
+            triggerGameOver("监控探头闪烁红光。机械臂从墙壁伸出，精准地将一针镇静剂推入你的静脉。你彻底迷失在他的代码里。");
+        }
+    }, 30000); // 30秒涨一点警戒
+}
