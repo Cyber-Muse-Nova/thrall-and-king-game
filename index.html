@@ -1398,13 +1398,13 @@
             let html = text
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             html = html
-                .replace(/【([^】]+)】/g, '<span class="hl-item">【$1】</span>')
-                .replace(/《([^》]+)》/g, '<span class="hl-song">《$1》</span>')
-                .replace(/「([^」]+)」/g, '<span class="hl-dialog">「$1」</span>')
-                .replace(/"([^""]+)"/g, '<span class="hl-lyric">"$1"</span>')
-                .replace(/♪/g, '<span class="hl-sfx">♪</span>')
-                .replace(/(——[\S ]{1,16}——)/g, '<span class="hl-sfx">$1</span>')
-                .replace(/(\.\.\.[\S ]{1,12}\.\.\.)/g, '<span class="hl-sfx">$1</span>')
+                .replace(/【([^】]+)】/g, '<span class=\'hl-item\'>【$1】</span>')
+                .replace(/《([^》]+)》/g, '<span class=\'hl-song\'>《$1》</span>')
+                .replace(/「([^」]+)」/g, '<span class=\'hl-dialog\'>「$1」</span>')
+                .replace(/"([^""]+)"/g, '<span class=\'hl-lyric\'>\u201c$1\u201d</span>')
+                .replace(/♪/g, '<span class=\'hl-sfx\'>♪</span>')
+                .replace(/(——[\S ]{1,16}——)/g, '<span class=\'hl-sfx\'>$1</span>')
+                .replace(/(\.\.\.[\S ]{1,12}\.\.\.)/g, '<span class=\'hl-sfx\'>$1</span>')
                 .replace(/\n/g, '<br>');
             return html;
         }
