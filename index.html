@@ -112,7 +112,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.64));
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.25));
             pointer-events: none;
         }
 
@@ -173,6 +173,37 @@
             50% { transform: translate(0.5px, -0.6px); }
             75% { transform: translate(-0.6px, 0.3px); }
             100% { transform: translate(0.4px, -0.3px); }
+        }
+
+        /* ── 王的监听警告 ── */
+        #dangerFlash {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            background: radial-gradient(circle at 50% 50%, rgba(180, 0, 0, 0.7), rgba(60, 0, 0, 0.85));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #dangerFlash.active {
+            opacity: 1;
+            animation: dangerPulse 0.8s ease-out forwards;
+        }
+        #dangerFlash .danger-text {
+            font-size: clamp(32px, 6vw, 64px);
+            color: #ff1a1a;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.9), 0 0 60px rgba(255, 0, 0, 0.5);
+            font-weight: bold;
+            letter-spacing: 8px;
+            animation: textShake 0.1s infinite;
+        }
+        @keyframes dangerPulse {
+            0% { opacity: 1; }
+            70% { opacity: 0.9; }
+            100% { opacity: 0; }
         }
 
         .choices {
@@ -684,6 +715,7 @@
             <div class="modal-actions"><button class="btn hot" id="puzzleConfirm">确认</button><button class="btn" id="puzzleCancel">离开</button></div>
         </div>
     </div>
+    <div id="dangerFlash"><span class="danger-text">王听见你了</span></div>
     <div id="app">
         <section class="panel stage">
             <h1 class="title">Thrall &amp; King</h1>
@@ -1177,7 +1209,7 @@
                 roomVisualEl.style.backgroundImage = '';
                 return;
             }
-            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.62)), url('${image}')`;
+            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url('${image}')`;
             roomVisualEl.style.backgroundSize = 'cover';
             roomVisualEl.style.backgroundPosition = 'center';
         }
@@ -1188,7 +1220,7 @@
                 roomVisualEl.style.backgroundImage = '';
                 return;
             }
-            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.70)), url('${image}')`;
+            roomVisualEl.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.30)), url('${image}')`;
             roomVisualEl.style.backgroundSize = 'cover';
             roomVisualEl.style.backgroundPosition = 'center';
         }
@@ -1305,6 +1337,13 @@
         function bumpDanger(delta) {
             state.danger = Math.max(0, state.danger + delta);
             renderSidebar();
+            if (delta > 0) {
+                const flash = document.getElementById('dangerFlash');
+                flash.classList.remove('active');
+                void flash.offsetWidth;
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 900);
+            }
         }
 
         function bumpSanity(delta) {
@@ -1424,6 +1463,8 @@
             }
         }
 
+        let lastRenderedRoom = null;
+
         function render() {
             if (state.mode === 'title') return;
             const room = rooms[state.room];
@@ -1431,7 +1472,10 @@
             roomVisualEl.className = `room-visual ${room.className}`;
             applyRoomArt(state.room);
             objectiveEl.textContent = room.objective;
-            typewrite(logEl, room.desc, 28);
+            if (state.room !== lastRenderedRoom) {
+                typewrite(logEl, room.desc, 28);
+                lastRenderedRoom = state.room;
+            }
             choicesEl.innerHTML = '';
             room.choices.forEach(choice => {
                 if (choice.require && !choice.require()) return;
