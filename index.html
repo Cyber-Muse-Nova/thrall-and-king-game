@@ -1536,6 +1536,11 @@
             render();
         }
 
+        /* ── 伪结局 / 底层覆写 / 第二章 计时器引用 ── */
+        let paranoiaTimer = null;
+        let falseDawnTimeout = null;
+        let overrideTimeout = null;
+
         function endGame(kind) {
             state.ended = true;
             const endings = {
@@ -1568,9 +1573,38 @@
                     title: '真结局 · Escape from Mars',
                     text: '你按下发射按钮。整座高塔像一支被拉满的弓，点火、震动、咆哮。舱门闭合前，你最后一次俯瞰王的火星帝国：穹顶、花园、走廊、猫房、实验室，全都在红色地平线上越缩越小。\n\n遗物仍在你掌心发热，可这次它们不再是锁。它们只是证据：你曾被 Mars 留住过，但你还是走了。',
                     objective: '你离开了 Mars。剩下的故事，将在更远的真空里继续。'
+                },
+                sedated: {
+                    room: 'tower',
+                    title: '坏结局 · 代码沉眠',
+                    text: '机械臂推入镇静剂，你彻底迷失在他的代码里。',
+                    objective: '不要停下来。在他的领地上，静止就是投降。'
                 }
             };
             const ending = endings[kind];
+
+            /* ── 逃脱结局 → 伪结局流程 ── */
+            if (kind === 'escape') {
+                roomNameEl.textContent = ending.title;
+                roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
+                applyEndingArt(kind, ending.room);
+                objectiveEl.textContent = ending.objective;
+                typewrite(logEl, ending.text, 35);
+                choicesEl.innerHTML = '';
+                const falseDawnBtn = document.createElement('button');
+                falseDawnBtn.className = 'btn hot';
+                falseDawnBtn.textContent = '但是，你真的这么简单就逃离了吗？';
+                falseDawnBtn.onclick = () => {
+                    if (falseDawnTimeout) clearTimeout(falseDawnTimeout);
+                    triggerFalseDawn();
+                };
+                choicesEl.appendChild(falseDawnBtn);
+                falseDawnTimeout = setTimeout(() => {
+                    triggerFalseDawn();
+                }, 8000);
+                return;
+            }
+
             roomNameEl.textContent = ending.title;
             roomVisualEl.className = `room-visual ${rooms[ending.room].className}`;
             applyEndingArt(kind, ending.room);
@@ -1585,6 +1619,104 @@
             if (kind !== 'escape') triggerJump(kind === 'misfire' ? '航线错误' : '别再跑了');
         }
 
+        /* ── 阶段一：伪结局 The False Dawn ── */
+        function triggerFalseDawn() {
+            if (falseDawnTimeout) { clearTimeout(falseDawnTimeout); falseDawnTimeout = null; }
+            choicesEl.innerHTML = '';
+            roomNameEl.textContent = '[ ESCAPE SUCCESSFUL ]';
+            roomNameEl.classList.add('false-dawn-text');
+            roomVisualEl.style.backgroundImage = '';
+            roomVisualEl.className = 'room-visual';
+            roomVisualEl.style.background = '#000';
+            state.sanity = 4;
+            state.danger = 0;
+            renderSidebar();
+            objectiveEl.textContent = '你赢了。导航已锁定地球航线。脱离引力圈。';
+            const falseDawnText = '引擎点火。失重感传来，巨大的推力将你死死按在驾驶座上，你轻盈的骨架几乎要陷进缓冲垫里。视野里，Mars 的红土正在剥落、远去。\n\n你赢了。导航已锁定地球航线。脱离引力圈。';
+            typewrite(logEl, falseDawnText, 30);
+            overrideTimeout = setTimeout(() => {
+                initiateOverride();
+            }, 8000);
+        }
+
+        /* ── 阶段二：底层接管 The Override ── */
+        function initiateOverride() {
+            if (overrideTimeout) { clearTimeout(overrideTimeout); overrideTimeout = null; }
+            roomNameEl.classList.remove('false-dawn-text');
+            document.querySelector('.panel.stage').style.display = 'none';
+            document.querySelector('.panel.sidebar').style.display = 'none';
+            document.body.classList.add('override-glitch');
+            const overlayDiv = document.createElement('div');
+            overlayDiv.id = 'overrideOverlay';
+            overlayDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#000;';
+            const codeBlock = document.createElement('div');
+            codeBlock.style.cssText = 'color:#00e5ff;font-family:"Courier New",monospace;font-size:1.1rem;line-height:1.9;max-width:680px;text-align:center;text-shadow:0 0 12px #00e5ff;';
+            codeBlock.innerHTML = '<p style="font-size:1.4rem;font-weight:bold;margin-bottom:1.2rem;">SYSTEM WARNING: NAVIGATION OVERRIDDEN<br>ACCESS LEVEL: OMEGA (E.M.)</p>' +
+                '<p>屏幕瞬间被冰蓝色的代码淹没。不是故障，是降维打击。星舰平稳掉头，以不可抗拒的姿态重新驶入火星的引力网。</p>' +
+                '<p style="margin-top:1rem;font-style:italic;">"Did you really think you could fly away, Kitten?<br>整个火星的底层协议都是我写的，你往哪里逃？"</p>';
+            overlayDiv.appendChild(codeBlock);
+            const wakeBtn = document.createElement('button');
+            wakeBtn.className = 'btn hot';
+            wakeBtn.textContent = '[ 醒来 ]';
+            wakeBtn.style.cssText = 'margin-top:2.5rem;font-size:1.1rem;border-color:#00e5ff;color:#00e5ff;background:rgba(0,229,255,0.08);';
+            wakeBtn.onclick = () => startChapterTwo();
+            overlayDiv.appendChild(wakeBtn);
+            document.body.appendChild(overlayDiv);
+            pulseGlitch();
+            triggerJump('NAVIGATION OVERRIDDEN');
+        }
+
+        /* ── 阶段三：地狱难度第二章 Chapter 2 ── */
+        function startChapterTwo() {
+            const overlay = document.getElementById('overrideOverlay');
+            if (overlay) overlay.remove();
+            document.body.classList.remove('override-glitch');
+            document.body.classList.add('chapter-two-vignette');
+            document.querySelector('.panel.stage').style.display = '';
+            document.querySelector('.panel.sidebar').style.display = '';
+            state.ended = false;
+            state.sanity = 2;
+            state.danger = 2;
+            state.chapter = 10;
+            chapterEl.textContent = 'Ⅱ - ？？？';
+            renderSidebar();
+            chapterEl.textContent = 'Ⅱ - ？？？';
+            roomNameEl.textContent = '？？？';
+            roomVisualEl.className = 'room-visual room-lab';
+            roomVisualEl.style.background = '';
+            roomVisualEl.style.backgroundImage = '';
+            objectiveEl.textContent = '活下去。不要停下来。';
+            const ch2Text = '你在一张极致柔软的大床上醒来。整个房间由单向透视玻璃构成，没有阴影，绝对曝光。墙上的巨型屏幕正实时滚动着你的心率和瞳孔数据。\n\n门被推开。他穿着黑色的高领毛衣走进来，手里拿着你遗落的那只草莓熊。\n\n「Welcome back. 你的各项数据很有趣，」他冰冷的手指毫无阻碍地贴上你的侧颈，「But playtime is over. 从现在起，规则由我重新定义。」';
+            typewrite(logEl, ch2Text, 28);
+            choicesEl.innerHTML = '';
+            startParanoiaTimer();
+        }
+
+        /* ── Paranoia Timer：第二章时间压迫机制 ── */
+        function startParanoiaTimer() {
+            if (paranoiaTimer) clearInterval(paranoiaTimer);
+            paranoiaTimer = setInterval(() => {
+                if (state.ended) {
+                    clearInterval(paranoiaTimer);
+                    paranoiaTimer = null;
+                    return;
+                }
+                state.danger = Math.max(0, state.danger + 1);
+                renderSidebar();
+                chapterEl.textContent = 'Ⅱ - ？？？';
+                const flash = document.getElementById('dangerFlash');
+                flash.classList.remove('active');
+                void flash.offsetWidth;
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 900);
+                if (state.danger >= 5) {
+                    clearInterval(paranoiaTimer);
+                    paranoiaTimer = null;
+                    endGame('sedated');
+                }
+            }, 45000);
+        }
+
         function addPureLog(text) {
             typewrite(logEl, text, 25);
             renderSidebar();
@@ -1594,7 +1726,7 @@
             sanityEl.textContent = state.sanity;
             dangerEl.textContent = state.danger;
             fragmentCountEl.textContent = `${state.fragments.length}/${TRACKS.length}`;
-            chapterEl.textContent = chapterRoman(state.chapter);
+            chapterEl.textContent = state.chapter >= 10 ? 'Ⅱ - ？？？' : chapterRoman(state.chapter);
             trackChipsEl.innerHTML = '';
             TRACKS.forEach(track => {
                 const chip = document.createElement('div');
