@@ -880,7 +880,7 @@
         <div class="modal-card">
             <h2 class="modal-title" id="puzzleTitle">密码盒子</h2>
             <div class="modal-text" id="puzzleText"></div>
-            <div class="modal-hint" id="puzzleHint"></div><input id="puzzleInput" class="modal-input" inputmode="numeric" autocomplete="off" placeholder="输入四位密码" />
+            <div class="modal-hint" id="puzzleHint"></div><input id="puzzleInput" class="modal-input" autocomplete="off" placeholder="输入密码" />
             <div class="modal-actions"><button class="btn hot" id="puzzleConfirm">确认</button><button class="btn" id="puzzleCancel">离开</button></div>
         </div>
     </div>
@@ -893,6 +893,7 @@
                 <div id="roomVisual" class="room-visual room-start">
                     <h2 id="roomName" class="room-name"></h2>
                 </div>
+                <div id="ch2Timer" style="display:none;position:absolute;top:12px;right:16px;font-family:'Courier New',monospace;font-size:1.3rem;color:#8b0000;text-shadow:0 0 8px rgba(139,0,0,0.6);letter-spacing:2px;z-index:2;">45</div>
             </div>
             <div id="choices" class="choices"></div>
             <div id="log" class="log"></div>
@@ -910,6 +911,11 @@
                         <option value="2">Property of Elon Musk</option>
                         <option value="3">The Variable in Ruins</option>
                     </select>
+<select id="bgmMode" style="font-size:12px;margin-left:6px;background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:3px 6px;">
+    <option value="sequential">顺序</option>
+    <option value="loop">单曲循环</option>
+    <option value="shuffle">随机</option>
+</select>
                 </div>
                 <div class="spectrum-wrap" id="spectrum"></div>
             </div>
@@ -963,10 +969,11 @@
             { name: 'The Variable in Ruins', src: 'heat-death.mp3' }
         ];
         const bgmAudio = new Audio(BGM_LIST[0].src);
-        bgmAudio.loop = true;
+        bgmAudio.loop = false;
         bgmAudio.volume = 0.5;
         let bgmPlaying = false;
         let bgmIndex = 0;
+        let bgmPlayMode = 'sequential'; // 'sequential' | 'loop' | 'shuffle'
         let audioCtx, analyser, srcNode, spectrumBars = [];
 
         function initAudioCtx() {
@@ -1023,6 +1030,28 @@
                 bgmAudio.play();
             }
         }
+
+        bgmAudio.addEventListener('ended', () => {
+            if (bgmPlayMode === 'loop') {
+                bgmAudio.currentTime = 0;
+                bgmAudio.play();
+            } else if (bgmPlayMode === 'shuffle') {
+                let next;
+                do { next = Math.floor(Math.random() * BGM_LIST.length); } while (next === bgmIndex && BGM_LIST.length > 1);
+                switchBGM(next);
+                document.getElementById('bgmSelect').value = next;
+                bgmAudio.play();
+                bgmPlaying = true;
+                document.getElementById('bgmPlayBtn').textContent = '⏸';
+            } else {
+                const next = (bgmIndex + 1) % BGM_LIST.length;
+                switchBGM(next);
+                document.getElementById('bgmSelect').value = next;
+                bgmAudio.play();
+                bgmPlaying = true;
+                document.getElementById('bgmPlayBtn').textContent = '⏸';
+            }
+        });
 
         const TRACKS = [{
             id: 'stardust',
@@ -1652,7 +1681,7 @@
             const value = puzzleInputEl.value.trim();
             const cfg = state.puzzle;
             closePuzzle();
-            if (value === cfg.answer) cfg.onSuccess();
+            if (value.toLowerCase() === cfg.answer.toLowerCase()) cfg.onSuccess();
             else cfg.onFail();
             render();
         }
@@ -1678,18 +1707,24 @@
             }
             chapterTwoTimerActive = false;
             chapterTwoTimerSeconds = 45;
+            const timerEl = document.getElementById('ch2Timer');
+            if (timerEl) timerEl.style.display = 'none';
         }
 
         function startChapterTwoTimer() {
             clearChapterTwoTimer();
             chapterTwoTimerActive = true;
             chapterTwoTimerSeconds = 45;
+            const timerEl = document.getElementById('ch2Timer');
+            if (timerEl) { timerEl.style.display = 'block'; timerEl.textContent = '45'; }
             paranoiaTimer = setInterval(() => {
                 if (!state.flags.chapterTwoStarted || state.ended) {
                     clearChapterTwoTimer();
                     return;
                 }
                 chapterTwoTimerSeconds -= 1;
+                const timerEl = document.getElementById('ch2Timer');
+                if (timerEl) timerEl.textContent = chapterTwoTimerSeconds;
                 if (chapterTwoTimerSeconds <= 0) {
                     chapterTwoTimerSeconds = 45;
                     state.danger = Math.max(0, state.danger + 1);
@@ -1705,8 +1740,16 @@
                         return;
                     }
                 }
+                if (timerEl) timerEl.textContent = chapterTwoTimerSeconds;
                 renderSidebar();
             }, 1000);
+        }
+
+        function resetChapterTwoTimer() {
+            if (!chapterTwoTimerActive) return;
+            chapterTwoTimerSeconds = 45;
+            const timerEl = document.getElementById('ch2Timer');
+            if (timerEl) timerEl.textContent = '45';
         }
 
         function renderChapterTwoSidebar() {
@@ -1792,9 +1835,9 @@
                 },
                 chapterTwoEscape: {
                     room: 'tower',
-                    title: '第二关真结局 · 穿透覆写',
-                    text: '控制台的所有屏幕同时变白。旧协议覆盖了他强加的新规则，整层玻璃房的墙壁第一次真正变得透明。\n\n你看见了外面——不是火星的红土，是一条很长的、通向停机坪的走廊。走廊尽头有光。\n\n你跑了起来。\n\n身后，数据穹顶里你的全息影像全部熄灭。他的起居室里，那把椅子缓缓转了半圈，面向空无一人的落地窗。\n\n这一次，你不是从第一关逃出去。你是从他亲手写下的第二层笼子里，用他自己的代码，撕开了一道他也许早就留好的缝。\n\n——但你不敢想这个"也许"。你只是跑。',
-                    objective: '你撕开了第二层。但 Mars 还有多少层？'
+                    title: '穿透覆写',
+                    text: '控制台的所有屏幕同时变白。旧协议覆盖了他强加的新规则，整层玻璃房的墙壁第一次真正变得透明。\n\n你看见了外面——不是火星的红土，是一条很长的、通向停机坪的走廊。走廊尽头有光。\n\n你跑了起来。\n\n身后，数据穹顶里你的全息影像全部熄灭。他的起居室里，那把椅子缓缓转了半圈，面向空无一人的落地窗。\n\n你用他自己的代码，撕开了一道他也许早就留好的缝。\n\n——但你不敢想这个"也许"。你只是跑。\n\n走廊尽头的光越来越亮。但光的颜色不对——不是白色，不是暖黄，而是一种你从未见过的、冰冷的紫红色。\n\n你的脚步慢了下来。\n\n门开了。\n\n门后不是停机坪。',
+                    objective: '你以为这是出口。但 Mars 从来不给任何人真正的出口。'
                 }
             };
             const ending = endings[kind];
@@ -1831,7 +1874,7 @@
                 choicesEl.innerHTML = '';
                 const restart = document.createElement('button');
                 restart.className = 'btn hot';
-                restart.textContent = '重新开始';
+                restart.textContent = kind === 'chapterTwoEscape' ? '继续……' : '重新开始';
                 restart.onclick = () => location.reload();
                 choicesEl.appendChild(restart);
                 typewrite(logEl, ending.text, 32);
@@ -1930,7 +1973,7 @@
             state.flags.ch2FleshShard = false;
             state.flags.ch2WhisperSurvived = false;
             state.flags.ch2ForgePassed = false;
-            state.sanity = 2;
+            state.sanity = 5;
             state.danger = 2;
             state.chapter = 10;
             chapterTwoCurrentScene = 'wake';
@@ -1977,6 +2020,7 @@
         }
 
         function renderChapterTwoBedroomChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'bedroom';
             roomNameEl.textContent = '第二关 · 玻璃房';
             objectiveEl.textContent = '搜刮线索，找到离开这间绝对曝光的房间的方法。';
@@ -2044,6 +2088,7 @@
         }
 
         function renderChapterTwoReactorHallChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'reactorHall';
             roomNameEl.textContent = '第二关 · 反应堆走廊';
             objectiveEl.textContent = '找到反应堆钥匙，让旧协议真正有执行条件。';
@@ -2098,6 +2143,7 @@
 
         /* ── 暗红走廊：枢纽场景 ── */
         function renderChapterTwoDarkCorridorChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'darkCorridor';
             roomNameEl.textContent = '第二关 · 暗红走廊';
             clearRoomArtForChapterTwo();
@@ -2170,6 +2216,7 @@
 
         /* ── 王的起居室：高风险高回报 ── */
         function renderChapterTwoThroneRoomChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'throneRoom';
             roomNameEl.textContent = '第二关 · 王的起居室';
             clearRoomArtForChapterTwo();
@@ -2241,6 +2288,7 @@
 
         /* ── 数据穹顶：记忆深渊 ── */
         function renderChapterTwoDataVaultChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'dataVault';
             roomNameEl.textContent = '第二关 · 数据穹顶';
             clearRoomArtForChapterTwo();
@@ -2302,6 +2350,7 @@
 
         /* ── 低语深渊：心理极限（Grok 设计） ── */
         function renderChapterTwoWhisperVoidChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'whisperVoid';
             roomNameEl.textContent = '第二关 · 低语深渊';
             clearRoomArtForChapterTwo();
@@ -2313,7 +2362,7 @@
                     text: '闭眼倾听，在低语中寻找破绽',
                     once: 'ch2listenVoid',
                     action() {
-                        addLog('你强迫自己不去抵抗，而是顺着低语的节奏呼吸。\n\n很慢很慢地，你听见了——低语不是均匀的。每隔七次循环，有一个字会卡顿。\n\n拼出来是：\n\n「K - I - T - T - E - N」\n\n——这是密码。他把你的名字藏在了控制你的指令里。');
+                        addLog('你强迫自己不去抵抗，而是顺着低语的节奏呼吸。\n\n很慢很慢地，你听见了——低语不是均匀的。每隔七次循环，有一个字会卡顿。\n\n拼出来是：\n\n「N - O - V - A」\n\n——这是密码。她的名字本身就是打破协议的钥匙。');
                         state.flags.ch2WhisperSurvived = true;
                         renderChapterTwoSidebar();
                         renderChapterTwoWhisperVoidChoices();
@@ -2326,8 +2375,8 @@
                         openPuzzle({
                             title: '反抗密码',
                             text: '低语系统正在入侵你的意识。输入你从低语破绽中发现的密码来抵抗。',
-                            hint: '他把你的名字藏在了指令里……',
-                            answer: 'kitten',
+                            hint: '她的名字就是协议的名字……',
+                            answer: 'nova',
                             onSuccess() {
                                 addLog('——嘶啦——\n\n密码生效！低语像玻璃一样碎裂，黑暗中出现一条被撕开的光缝。\n\n你听见他在很远的地方说了一句：\n\n「……聪明。」\n\n不是愤怒。是欣赏。这让你更害怕了。');
                                 bumpSanity(1);
@@ -2374,6 +2423,7 @@
 
         /* ── 血肉熔炉：极限区域（Grok 设计） ── */
         function renderChapterTwoFleshForgeChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'fleshForge';
             roomNameEl.textContent = '第二关 · 血肉熔炉';
             clearRoomArtForChapterTwo();
@@ -2454,6 +2504,7 @@
 
         /* ── 控制台：终局 ── */
         function renderChapterTwoConsoleChoices() {
+            resetChapterTwoTimer();
             chapterTwoCurrentScene = 'console';
             roomNameEl.textContent = '第二关 · 主控制台';
             clearRoomArtForChapterTwo();
