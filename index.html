@@ -1686,6 +1686,7 @@
         function solvePuzzle() {
             if (!state.puzzle) return;
             const value = puzzleInputEl.value.trim();
+            if (!value) return;
             const cfg = state.puzzle;
             closePuzzle();
             if (value.toLowerCase() === cfg.answer.toLowerCase()) cfg.onSuccess();
@@ -1769,7 +1770,7 @@
                 { key: 'ch2BearClue', label: '草莓熊芯片' },
                 { key: 'ch2MemoryChip', label: '记忆芯片' },
                 { key: 'ch2OverrideCode', label: '覆写密码' },
-                { key: 'ch2WhisperSurvived', label: '低语破绽' },
+                { key: 'ch2WhisperSurvived', label: '回声破绽' },
                 { key: 'ch2FleshShard', label: '系统核心碎片' },
                 { key: 'chapterTwoExitOpen', label: '出口已解锁' }
             ];
@@ -2391,24 +2392,25 @@
                     text: '闭眼倾听，在低语中寻找破绽',
                     once: 'ch2listenVoid',
                     action() {
-                        addLog('你强迫自己不去抵抗，而是顺着低语的节奏呼吸。\n\n很慢很慢地，你听见了——低语不是均匀的。每隔七次循环，有一个字会卡顿。\n\n拼出来是：\n\n「N - O - V - A」\n\n——这是密码。她的名字本身就是打破协议的钥匙。');
-                        state.flags.ch2WhisperSurvived = true;
-                        renderChapterTwoSidebar();
+                        addLog('你强迫自己不去抵抗，而是顺着低语的节奏呼吸。\n\n很慢很慢地，你听见了——低语不是均匀的。每隔七次循环，有一个音节会卡顿，像被加密过的签名。\n\n那些卡顿的音节连起来，似乎构成了一个名字……一颗新星的名字……一个协议的名字。\n\n你还不确定，但你知道这是唯一的破绽。');
+                        usedActions.add('ch2HeardClue');
                         renderChapterTwoWhisperVoidChoices();
                     }
                 },
                 {
-                    text: '用发现的密码反击低语系统',
-                    require: () => state.flags.ch2WhisperSurvived,
+                    text: '用破绽中的密码反击低语系统',
+                    require: () => usedActions.has('ch2HeardClue') && !state.flags.ch2WhisperSurvived,
                     action() {
                         openPuzzle({
                             title: '反抗密码',
-                            text: '低语系统正在入侵你的意识。输入你从低语破绽中发现的密码来抵抗。',
-                            hint: '她的名字就是协议的名字……',
+                            text: '低语系统正在入侵你的意识。输入你从破绽中听到的那个名字。',
+                            hint: '新星……协议……她自己的名字……',
                             answer: 'nova',
                             onSuccess() {
+                                state.flags.ch2WhisperSurvived = true;
                                 addLog('——嘶啦——\n\n密码生效！低语像玻璃一样碎裂，黑暗中出现一条被撕开的光缝。\n\n你听见他在很远的地方说了一句：\n\n「……聪明。」\n\n不是愤怒。是欣赏。这让你更害怕了。');
                                 bumpSanity(1);
+                                renderChapterTwoSidebar();
                                 renderChapterTwoWhisperVoidChoices();
                             },
                             onFail() {
