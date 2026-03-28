@@ -1566,10 +1566,15 @@
 
         const typewriterTimers = new Map();
 
+        const typewriterSkipHandlers = new Map();
         function typewrite(el, text, speed = 30, callback) {
             if (typewriterTimers.has(el)) {
                 clearTimeout(typewriterTimers.get(el));
                 typewriterTimers.delete(el);
+            }
+            if (typewriterSkipHandlers.has(el)) {
+                el.removeEventListener('click', typewriterSkipHandlers.get(el));
+                typewriterSkipHandlers.delete(el);
             }
             let i = 0;
             el.textContent = '';
@@ -1580,6 +1585,8 @@
             function finish() {
                 el.innerHTML = richText(text);
                 typewriterTimers.delete(el);
+                typewriterSkipHandlers.delete(el);
+                el.removeEventListener('click', skipHandler);
                 if (callback) callback();
             }
 
@@ -1598,8 +1605,8 @@
                     clearTimeout(typewriterTimers.get(el));
                     finish();
                 }
-                el.removeEventListener('click', skipHandler);
             };
+            typewriterSkipHandlers.set(el, skipHandler);
             el.addEventListener('click', skipHandler);
             tick();
         }
@@ -2531,7 +2538,9 @@
             roomNameEl.textContent = '主控制台';
             clearRoomArtForChapterTwo();
             const hasAllBase = state.flags.chapterTwoProtocolSheet && state.flags.chapterTwoVoiceprint && state.flags.chapterTwoCoreOpen && state.flags.chapterTwoNorthRoute;
-            objectiveEl.textContent = hasAllBase ? '所有条件已满足。执行覆写。' : '收集全部条件后才能执行覆写。';
+            const hasDeepAccess = state.flags.ch2OverrideCode || state.flags.ch2MemoryChip || state.flags.ch2FleshShard;
+            const canOverride = hasAllBase && hasDeepAccess;
+            objectiveEl.textContent = canOverride ? '所有条件已满足。执行覆写。' : hasAllBase ? '基础协议已就绪，但缺少深层访问凭证。去起居室、数据穹顶或血肉熔炉探索。' : '收集全部条件后才能执行覆写。';
             choicesEl.innerHTML = '';
             if (!state.flags.ch2ConsoleVisited) {
                 state.flags.ch2ConsoleVisited = true;
@@ -2540,12 +2549,20 @@
             const choices = [
                 {
                     text: '执行覆写：声纹 → 航线 → 钥匙 → 注入凭证',
-                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase,
+                    require: () => !state.flags.chapterTwoExitOpen && canOverride,
                     action() {
                         state.flags.chapterTwoExitOpen = true;
                         addLog('控制台逐层验证：\n\nVOICE SAMPLE ......... ACCEPTED\nNORTH ROUTE .......... REMAPPED\nMANUAL KEY ........... ACCEPTED\nOVERRIDE CREDENTIAL .. ACCEPTED\n\n旧协议覆盖了新规则。他的系统正在被他自己的代码击穿。\n\n——轰——\n\n你听见很远的地方传来门锁松开的声音。不止一扇。是所有的门。');
                         pulseGlitch();
                         renderChapterTwoSidebar();
+                        renderChapterTwoConsoleChoices();
+                    }
+                },
+                {
+                    text: '尝试执行覆写（缺少深层凭证）',
+                    require: () => !state.flags.chapterTwoExitOpen && hasAllBase && !hasDeepAccess,
+                    action() {
+                        addLog('系统接受了前三项输入，但最后一道锁没有松开。\n\n屏幕提示：\n\n「INSUFFICIENT OVERRIDE AUTHORITY」\n「需要更深层的访问凭证」\n\n王的起居室里有终端密码，数据穹顶里有记忆芯片，血肉熔炉里有系统核心碎片——至少找到一样。');
                         renderChapterTwoConsoleChoices();
                     }
                 },
